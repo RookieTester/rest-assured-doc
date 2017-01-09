@@ -3,7 +3,7 @@ layout:     post
 title:      "rest-assured用户手册"
 subtitle:   ""
 date:       2016-12-12 00:52:45
-author:     "小白"
+author:     "小白，士钊"
 tags:
     - rest-assured
     - 接口测试
@@ -558,7 +558,7 @@ then().
 
 ### JSON示例
 
-Let's say we have a resource at `http://localhost:8080/store` that returns the following JSON document:
+假设`http://localhost:8080/store`返回如下的JSON：
 
 ```javascript
 {  
@@ -595,8 +595,8 @@ Let's say we have a resource at `http://localhost:8080/store` that returns the f
 }
 ```
 
-#### Example 1
-As a first example let's say we want to make the request to "/store" and assert that the titles of the books with a price less than 10 are "Sayings of the Century" and "Moby Dick":
+#### 例1
+在本例中我们发起一个请求"/store"，并且做了一个断言：搜集满足price字段值小于10的所有book数组里的title字段，得到了"Sayings of the Century"和"Moby Dick"这两个结果：
 
 ```java
 when().
@@ -605,8 +605,9 @@ then().
        body("store.book.findAll { it.price < 10 }.title", hasItems("Sayings of the Century", "Moby Dick"));
 ```
 
-Just as in the XML examples above we use a closure to find all books with a price less than 10 and then return the titles of all the books. 
-We then use the `hasItems` matcher to assert that the titles are the ones we expect. Using [JsonPath](http://static.javadoc.io/io.restassured/json-path/3.0.1/io/restassured/path/json/JsonPath.html) we can return the titles instead:
+就像上面XML的例子，我们使用闭包获取所有price字段值低于10的book数组，并且返回相应的title字段值集合。
+
+然后使用`hasItems`这个匹配器来断言得到我们预期的结果。使用[JsonPath](http://static.javadoc.io/io.restassured/json-path/3.0.1/io/restassured/path/json/JsonPath.html) 我们可以用下面的方法替代：
 
 ```java
 // Get the response body as a String
@@ -615,10 +616,10 @@ String response = get("/store").asString();
 List<String> bookTitles = from(response).getList("store.book.findAll { it.price < 10 }.title");
 ```
 
-#### Example 2
- Let's consider instead that we want to assert that the sum of the length of all author names are greater than 50. 
- This is a rather complex question to answer and it really shows the strength of closures and Groovy collections. 
- In REST Assured it looks like this:
+#### 例2
+考虑下该如何断言所有author字段值长度总和是否大于50的结果。
+
+这是个挺难以回答的问题，这也正展示了闭包和Groovy集合的强大之处。在rest-assured里可以：
  
  ```java
  when().
@@ -627,24 +628,28 @@ List<String> bookTitles = from(response).getList("store.book.findAll { it.price 
         body("store.book.author.collect { it.length() }.sum()", greaterThan(50));
 ```
 
-First we get all the authors (`store.book.author`) and invoke the collect method on the resulting list with the closure `{ it.length() }`. 
-What it does is to call the `length()` method on each author in the list and returns the result to a new list. 
-On this list we simply call the `sum()` method to sum all the length's. 
-The end result is `53` and we assert that it's greater than 50 by using the `greaterThan` matcher. 
+首先我们通过(`store.book.author`)得到了所有的author字段值，然后使用闭包里的方法`{ it.length() }`解析这个集合。
+
+它所做的是对列表里的每一个author字段执行一次`length()`方法，然后返回一个新的列表。在这个列表中，我们再调用`sum()`方法来求得字符长度的总和。
+
+最终的结果是53，并且我们使用`greaterThan`匹配器的断言结果是大于50 。
 But it's actually possible to simplify this even further. Consider the "[words](#example-3---complex-parsing-and-validation)" example again:
+但是实际上可以继续简化这种写法。可以再次参考"[words](#例3---复杂的解析)"这个例子
+
 
 ```groovy
 def words = ['ant', 'buffalo', 'cat', 'dinosaur']
 ```
 
-Groovy has a very handy way of calling a function for each element in the list by using the spread operator, `*`. For example:
+Groovy有一个便利的方法可以遍历列表中的所有元素，使用`*`来调用。举个例子：
+
 
 ```groovy
 def words = ['ant', 'buffalo', 'cat', 'dinosaur']
 assert [3, 6, 3, 8] == words*.length()
 ```
 
-I.e. Groovy returns a new list with the lengths of the items in the words list. We can utilize this for the author list in REST Assured as well:
+Groovy返回了一个新的包含words中每个字段字符长度的列表。我们也可以把rest-assured中的这个语法用在author列表中：
 
 ```java
 when().
@@ -653,7 +658,7 @@ then().
        body("store.book.author*.length().sum()", greaterThan(50)).
 ```
 
-And of course we can use [JsonPath](http://static.javadoc.io/io.restassured/json-path/3.0.1/io/restassured/path/json/JsonPath.html) to actually return the result:
+当然我们可以使用[JsonPath](http://static.javadoc.io/io.restassured/json-path/3.0.1/io/restassured/path/json/JsonPath.html)来获取这个结果：
 
 ```java
 // Get the response body as a string
@@ -664,14 +669,15 @@ int sumOfAllAuthorLengths = from(response).getInt("store.book.author*.length().s
 assertThat(sumOfAllAuthorLengths, is(53));
 ```
 
-## Additional Examples ##
-Micha Kops has written a really good blog with several examples (including code examples that you can checkout). You can read it [here](http://www.hascode.com/2011/10/testing-restful-web-services-made-easy-using-the-rest-assured-framework/).
+## 其它例子 ##
+Micha Kops曾写过一篇很优秀的博客，里面包含大量示例（包括可检出的代码）。你可以[由此试读](http://www.hascode.com/2011/10/testing-restful-web-services-made-easy-using-the-rest-assured-framework/)。
 
-Also [Bas Dijkstra](https://www.linkedin.com/in/basdijkstra) has been generous enough to open source his REST Assured workshop. You can read more about this [here](http://www.ontestautomation.com/open-sourcing-my-workshop-an-experiment/) and you can try out, and contribute to, the exercises available in [his](https://github.com/basdijkstra/workshops/) github repository. 
+[Bas Dijkstra](https://www.linkedin.com/in/basdijkstra)也开展过不少关于rest-assured的开源研究和资源。你可以[由此阅读更多](http://www.ontestautomation.com/open-sourcing-my-workshop-an-experiment/)，如果你想试用或者作出贡献，[他的github仓库](https://github.com/basdijkstra/workshops/)里有些可以尝试的练习题。
 
 
-## Note on floats and doubles ##
-Floating point numbers must be compared with a Java "float" primitive. For example, if we consider the following JSON object:
+## 关注于floats和doubles ##
+浮点型数字必须和Java的基本类型"float"区分开。举个例子，如果我们看下面的JSON对象：
+
 
 ```javascript
 {
@@ -680,20 +686,21 @@ Floating point numbers must be compared with a Java "float" primitive. For examp
 
 }
 ```
-the following test will fail, because we compare with a "double" instead of a "float":
+
+如下的测试将会失败，因为我们在拿一个"double"在比较，而不是"float"：
 
 ```java
 get("/price").then().assertThat().body("price", equalTo(12.12));
 ```
 
-Instead, compare with a float with:
+想用"float"比较的话写法应该是：
 
 ```java
 get("/price").then().assertThat().body("price", equalTo(12.12f));
 ```
 
-## Note on syntax ##
-When reading blogs about REST Assured you may see a lot of examples using the "given / expect / when" syntax, for example:
+## 语法糖 ##
+当阅读rest-assured的博客时，你也许会看到许多使用"given / expect / when"语法的例子，举个例子：
 ```java
 given().
         param("x", "y").
@@ -703,7 +710,7 @@ when().
         get("/lotto");
 ```
 
-This is the so called "legacy syntax" which was the de facto way of writing tests in REST Assured 1.x. While this works fine it turned out to be quite confusing and annoying for many users. The reason for not using "given / when / then" in the first place was mainly technical. So prior to REST Assured 2.0 there was no support "given / when / then" which is more or less the standard approach when you're doing some kind of BDD-like testing. The "given / expect / when" approach still works fine in 2.0 but "given / when / then" reads better and is easier to understand for most people and is thus recommended in most cases. There's however one benefit of using the "given / expect / when" approach and that is that ALL expectation errors can be displayed at the same time which is not possible with the new syntax (since the expectations are defined last). This means that if you would have had multiple expectations in the previous example such as
+这是一种“遗留语法”，这实际上是rest-assured 1.x.版本用来写测试用例的方式。然而这种运作方式令许多用户迷惑甚至恼怒。这是因为一开始没有把"given / when / then"作为主要的技术来使用。所以rest-assured得2.0版本之前差不多不支持这种类似BDD-like测试的标准用法。"given / expect / when"在2.0仍然可用但是"given / when / then"可读性更强所以在测试用例中更为推荐。然而使用"given / expect / when"还有一个好处，就是所有的期望中的错误可以在同时展示出来，这是新语法做不到的（自从预期结果放在了最后面）。这意味着如果你有多个预期结果想要检验你可以：
 
 ```java
 given().
@@ -715,7 +722,7 @@ when().
         get("/lotto");
 ```
 
-REST Assured will report that both the status code expectation and the body expectation are wrong. Rewriting this with the new syntax
+rest-assured将同时报告状态码预期和响应体预期结果都是错的。将这些用新语法重写：
 
 ```java
 given().
@@ -727,16 +734,16 @@ then().
         body("lotto.lottoId", equalTo(6));
 ```
 
-will only report an error at the first failed expectation / assertion (that status code was expected to be 400 but it was actually 200). You would have to re-run the test in order to catch the second error.
+将会仅仅报告首个预期/断言失败的内容（比如预期状态码是400实际是200），第二个断言将不执行。你将不得不重新运行这个用例以期获取到第二个断言的结果。
 
-### Syntactic Sugar ###
-Another thing worth mentioning is that REST Assured contains some methods that are only there for syntactic sugar. For example the "and" method which can add readability if you're writing everything in a one-liner, for example:
+### 语法糖 ###
+rest-assured中另一件值得注意的是，有些语法仅仅存在于语法糖中，举个例子，"and"在一行代码中使用可以增强可读性。
 
 ```java
 given().param("x", "y").and().header("z", "w").when().get("/something").then().assertThat().statusCode(200).and().body("x.y", equalTo("z"));
 ```
 
-This is the same thing as:
+这等价于:
 
 ```java
 given().
@@ -749,16 +756,16 @@ then().
         body("x.y", equalTo("z"));
 ```
 
-# Getting Response Data #
-You can also get the content of a response. E.g. let's say you want to return the body of a get request to "/lotto". You can get it a variety of different ways:
+# 获取响应信息 #
+你也可以获得响应的内容。比方说你想通过发起一个get请求"/lotto"并获取其响应内容。你可以以多种方式：
 ```java
 InputStream stream = get("/lotto").asInputStream(); // Don't forget to close this one when you're done
 byte[] byteArray = get("/lotto").asByteArray();
 String json = get("/lotto").asString();
 ```
 
-## Extracting values from the Response after validation ##
-You can extract values from the response or return the response instance itself after you've done validating the response by using the `extract` method. This is useful for example if you want to use values from the response in sequent requests. For example given that a resource called `title` returns the following JSON
+## 从验证过的响应信息中提取值 ##
+你可以从响应信息中提取值，或者使用`extract`方法仅仅返回response本身的一个实例。如何你想获取响应里的值，并将其作为接下来的请求内容，这会很有用。下面是一个叫做`title`的资源返回的JSON数据：
 ```javascript
  {
      "title" : "My Title",
@@ -768,8 +775,8 @@ You can extract values from the response or return the response instance itself 
            }
  }
 ```
-and you want to validate that content type is equal to `JSON` and the title is equal to `My Title`
-but you also want to extract the link to the `next` title to use that in a subsequent request. This is how:
+
+你想验证内容类型是JSON格式且标题是`My Title`，但是还想要从中提取next的值并用来发起请求，下面是使用方法：
 
 ```java
 String nextTitleLink =
@@ -786,7 +793,7 @@ extract().
 get(nextTitleLink). ..
 ```
 
-You could also decide to instead return the entire response if you need to extract multiple values from the response:
+如果你想提取多个值，也可以考虑返回整个响应体：
 ```java
 Response response = 
 given().
@@ -803,15 +810,15 @@ String nextTitleLink = response.path("_links.next.href");
 String headerValue = response.header("headerName");
 ```
 
-## JSON (using JsonPath) ##
-Once we have the response body we can then use the [JsonPath](http://static.javadoc.io/io.restassured/json-path/3.0.1/io/restassured/path/json/JsonPath.html) to get data from the response body:
+## JSON (使用 JsonPath) ##
+一旦我们取得了响应体，我们可以使用[JsonPath](http://static.javadoc.io/io.restassured/json-path/3.0.1/io/restassured/path/json/JsonPath.html)来提取相应的数据：
 
 ```java
 int lottoId = from(json).getInt("lotto.lottoId");
 List<Integer> winnerIds = from(json).get("lotto.winners.winnerId");
 ```
 
-Or a bit more efficiently:
+或者更高效一些:
 ```java
 JsonPath jsonPath = new JsonPath(json).setRoot("lotto");
 int lottoId = jsonPath.getInt("lottoId");
@@ -819,25 +826,26 @@ List<Integer> winnerIds = jsonPath.get("winners.winnderId");
 ```
 
 Note that you can use `JsonPath` standalone without depending on REST Assured, see [getting started guide](GettingStarted) for more info on this.
+注意这里我们独立地使用了`JsonPath`，而没有依赖rest-assured本身的功能，看[getting started guide](GettingStarted) 获取更多信息。
 
-### JsonPath Configuration ###
-You can configure object de-serializers etc for JsonPath by configuring it, for example:
+### JsonPath 配置 ###
+你可以为JsonPath配置反序列化对象（object de-serializers），举个例子：
 ```java
 JsonPath jsonPath = new JsonPath(SOME_JSON).using(new JsonPathConfig("UTF-8"));
 ```
 
-It's also possible to configure JsonPath statically so that all instances of JsonPath will shared the same configuration:
+也可以静态配置好JsonPath，这样所有的JsonPath实例都会共享这个配置：
 
 ```java
 JsonPath.config = new JsonPathConfig("UTF-8");
 ```
 
-You can read more about JsonPath at [this blog](http://www.jayway.com/2013/04/12/whats-new-in-rest-assured-1-8/).
+更多JsonPath的内容参照[这篇博客](http://www.jayway.com/2013/04/12/whats-new-in-rest-assured-1-8/)。
 
-Note that the JsonPath implementation uses <a href='http://groovy-lang.org/processing-xml.html#_gpath'>Groovy's GPath</a> syntax and is not to be confused with Jayway's <a href='https://github.com/jayway/JsonPath'>JsonPath</a> implementation.
+注意这里的JsonPath基于<a href='http://groovy-lang.org/processing-xml.html#_gpath'>Groovy的GPath</a>，不要和<a href='https://github.com/jayway/JsonPath'>Jayway</a>的搞混了。
 
-## XML (using XmlPath) ##
-You also have the corresponding functionality for XML using  [XmlPath](http://static.javadoc.io/io.restassured/xml-path/3.0.1/io/restassured/path/xml/XmlPath.html):
+## XML (使用XmlPath) ##
+你也可以使用[XmlPath](http://static.javadoc.io/io.restassured/xml-path/3.0.1/io/restassured/path/xml/XmlPath.html)相应的功能：
 
 ```java
 String xml = post("/greetXML?firstName=John&lastName=Doe").andReturn().asString();
@@ -851,87 +859,96 @@ String firstName = xmlPath.get("firstName");
 String lastName = xmlPath.get("lastName");
 ```
 
-Note that you can use `XmlPath` standalone without depending on REST Assured, see [getting started guide](GettingStarted) for more info on this.
+注意你可以独立于rest-assured，单独使用`XmlPath`的功能，更多信息参见[getting started guide](GettingStarted)。
 
-### XmlPath Configuration ###
-You can configure object de-serializers and charset for XmlPath by configuring it, for example:
+### XmlPath配置 ###
+你可以配置XmlPath的对象反序列化器和字符编码，举个例子：
 ```java
 XmlPath xmlPath = new XmlPath(SOME_XML).using(new XmlPathConfig("UTF-8"));
 ```
 
-It's also possible to configure XmlPath statically so that all instances of XmlPath will shared the same configuration:
+也可以静态地配置XmlPath，使得所有的实例都能共享这套配置：
 
 ```java
 XmlPath.config = new XmlPathConfig("UTF-8");
 ```
 
-You can read more about XmlPath at [this blog](http://www.jayway.com/2013/04/12/whats-new-in-rest-assured-1-8/).
+更多关于XmlPath的信息参阅[这篇博客](http://www.jayway.com/2013/04/12/whats-new-in-rest-assured-1-8/)。
 
-## Single path ##
-If you only want to make a request and return a single path you can use a shortcut:
+## 单独路径 ##
+如果你只是想发起一个请求并返回一个单独路径下的值，你可以使用一个捷径：
 ```java
 int lottoId = get("/lotto").path("lotto.lottoid");
 ```
 
-REST Assured will automatically determine whether to use JsonPath or XmlPath based on the content-type of the response. If no content-type is defined then REST Assured will try to look at the [default parser](#default-parser) if defined. You can also manually decide which path instance to use, e.g.
+rest-assured会基于响应体的content-type自动决定是使用JsonPath还是XmlPath。如果这个类型在rest-assured没有被定义，它将会自动到[default parser](#default-parser)中查找。你可以自行（代码指定）决定使用哪种，比如：
 
 ```java
 String firstName = post("/greetXML?firstName=John&lastName=Doe").andReturn().xmlPath().getString("firstName");
 ```
 
-Options are `xmlPath`, `jsonPath` and `htmlPath`.
+`xmlPath`, `jsonPath`和`htmlPath`都是可选项。
 
 ## Headers, cookies, status etc ##
 
-You can also get headers, cookies, status line and status code:
+你也可以获取 headers, cookies, 状态行 ， 状态码:
+
 ```java
 Response response = get("/lotto");
 
-// Get all headers
+// 获取所有 headers 信息
 Headers allHeaders = response.getHeaders();
-// Get a single header value:
+
+// 获取单个 header 信息
 String headerName = response.getHeader("headerName");
 
-// Get all cookies as simple name-value pairs
+// 获取所有 cookie 键值对
 Map<String, String> allCookies = response.getCookies();
-// Get a single cookie value:
+
+// 获取单个 cookie 信息
 String cookieValue = response.getCookie("cookieName");
 
-// Get status line
+// 获取状态行信息
 String statusLine = response.getStatusLine();
-// Get status code
+
+// 获取状态码信息
 int statusCode = response.getStatusCode();
 ```
 
-## Multi-value headers and cookies ##
-A header and a cookie can contain several values for the same name.
+## 多个 headers 和 cookies ##
+header 和 cookie 可以包含同名的多个值。
 
-### Multi-value headers ###
-To get all values for a header you need to first get the [Headers](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/http/Headers.html) object from the [Response](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/response/Response.html) object. From the `Headers` instance you can get all values using the [Headers.getValues(<header name>)](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/http/Headers.html#getValues(java.lang.String)) method which returns a `List` with all header values.
+### 多个 headers ###
 
-### Multi-value cookies ###
-To get all values for a cookie you need to first get the [Cookies](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/http/Cookies.html) object from the [Response](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/response/Response.html) object. From the `Cookies` instance you can get all values using the [Cookies.getValues(<cookie name>)](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/http/Cookies.html#getValues(java.lang.String)) method which returns a `List` with all cookie values.
+要获取header的所有值，您需要首先从[Response](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/response/Response.html)对象中获取[Headers](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/http/Headers.html) 对象。您需要首先从Response对象中获取Headers对象。您可以使用Headers.getValues（
+）方法返回一个具有所有header值的List列表。
 
-## Detailed Cookies ##
-If you need to get e.g. the comment, path or expiry date etc from a cookie you need get a [detailed cookie](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/http/Cookie.html) from REST Assured. To do this you can use the [Response.getDetailedCookie(java.lang.String)](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/response/ResponseOptions.html#getDetailedCookie-java.lang.String-) method. The detailed cookie then contains all attributes from the cookie.
 
-You can also get all detailed response [cookies](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/http/Cookies.html) using the [Response.getDetailedCookies()](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/response/ResponseOptions.html#getDetailedCookies--) method.
+### 多个 cookies ###
 
-# Specifying Request Data #
+要获取cookie的所有值，您需要首先从[Response](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/response/Response.html)对象中获取[Cookie](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/http/Cookies.html)对象。您可以使用Cookie.getValues（）方法获取所有值，该方法返回包含所有Cookie值的List列表。
 
-Besides specifying request parameters you can also specify headers, cookies, body and content type.
 
-## Invoking HTTP resources ##
+## 详细的 Cookies 信息##
 
-You typically perform a request by calling any of the "HTTP methods" in the [request specification](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/specification/RequestSpecification.html). For example:
+如果您需要获取Cookie的路径或过期日期等详细信息，您需要从REST Assured获取一个[detailed cookie](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/http/Cookie.html)。您可以使用[Response.getDetailedCookie(java.lang.String)](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/response/ResponseOptions.html#getDetailedCookie-java.lang.String-) 方法获取单个Cookie，包括与给定名称相关联的所有属性。
+
+您还可以使用[Response.getDetailedCookies()](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/response/ResponseOptions.html#getDetailedCookies--)方法获取所有详细的响应[cookies](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/http/Cookies.html)。
+
+# 设置请求数据 #
+
+除了指定请求参数，您还可以指定headers，Cookie，正文和Content Type。
+
+## 调用HTTP资源 ##
+
+您通常通过调用[request specification](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/specification/RequestSpecification.html)中的“HTTP方法”执行请求。例如：
 
 ```java
 when().get("/x"). ..;
 ```
+其中`get`是HTTP请求方法。
 
-Where `get` is the HTTP request method.
-
-As of REST Assured 3.0.0 you can use any HTTP verb with your request by making use of the [](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/specification/RequestSpecification.html#request-java.lang.String-java.lang.String-) method.
+从REST Assured 3.0.0开始，您可以通过使用该方法为请求使用任何HTTP动词。
 
 ```java
 when().
@@ -940,10 +957,12 @@ then().
        statusCode(200);
 ```
 
-This will send a "connect" request to the server.
+这将向服务器发送“连接”请求。
 
-## Parameters ##
-Normally you specify parameters like this:
+
+## 参数 ##
+通常你可以这样指定参数：
+
 
 ```java
 given().
@@ -953,7 +972,7 @@ when().
        get("/something");
 ```
 
-REST Assured will automatically try to determine which parameter type (i.e. query or form parameter) based on the HTTP method. In case of GET query parameters will automatically be used and in case of POST form parameters will be used. In some cases it's however important to separate between form and query parameters in a PUT or POST. You can then do like this:
+REST Assured将自动尝试基于HTTP方法确定哪个参数类型（即查询或表单参数）。在GET的情况下，查询参数将被自动使用，在POST的情况下将使用表单参数。在某些情况下，重要的是在PUT或POST中分离表单和查询参数。你可以这样使用：
 
 ```java
 given().
@@ -963,21 +982,24 @@ when().
        post("/something");
 ```
 
-Parameters can also be set directly on the url:
+参数也可以url上进行设置：
+
 ```java
 ..when().get("/name?firstName=John&lastName=Doe");
 ```
 
-For multi-part parameters please refer to the [Multi-part form data](#multi-part-form-data) section.
+参数如果上传的是文件，字节数组，输入流或文本的可以参照[Multi-part form data](#multi-part-form-data)部分
 
-### Multi-value parameter ###
-Multi-value parameters are parameters with more then one value per parameter name (i.e. a list of values per name). You can specify these either by using var-args:
+
+### 多值参数 ###
+
+多值参数是每个参数名称具有多于一个值的参数（即，每个名称的值的列表）。您可以使用var-args指定这些值：
 
 ```java
 given().param("myList", "value1", "value2"). .. 
 ```
 
-or using a list:
+或者使用 list 列表：
 
 ```java
 List<String> values = new ArrayList<String>();
@@ -987,21 +1009,23 @@ values.add("value2");
 given().param("myList", values). .. 
 ```
 
-### No-value parameter ###
-You can also specify a query, request or form parameter without a value at all:
+### 无值参数 ###
+
+您还可以指定一个没有值的请求或表单参数：
+
 ```java
 given().param("paramName"). ..
 ```
 
-### Path parameters ###
-You can also specify so called path parameters in your request, e.g.
+### 路径参数 ###
+
+您还可以在请求中指定所谓的路径参数，例如
 ```java
 post("/reserve/{hotelId}/{roomNumber}", "My Hotel", 23);
 ```
+这些种类的路径参数在REST Assured中称为“未命名路径参数”，因为它们是基于索引的（`hotelId`将等于“My Hotel”，因为它是第一个占位符）。
 
-These kinds of path parameters are referred to "unnamed path parameters" in REST Assured since they are index based (`hotelId` will be equal to "My Hotel" since it's the first placeholder).
-
-You can also use named path parameters:
+您还可以使用命名路径参数：
 ```java
 given().
         pathParam("hotelId", "My Hotel").
@@ -1012,9 +1036,10 @@ then().
          ..
 ```
 
-Path parameters makes it easier to read the request path as well as enabling the request path to easily be re-usable in many tests with different parameter values.
 
-As of version 2.8.0 you can mix unnamed and named path parameters:
+路径参数使得更容易读取请求路径以及使请求路径能够在具有不同参数值的许多测试中容易地重复使用。
+
+从版本2.8.0开始，您可以混合未命名和命名的路径参数：
 
 ```java
 given().
@@ -1024,30 +1049,36 @@ when().
 then().
          ..
 ```
+这里 `roomNumber` 的值`My Hotel`将被替换为 `23`.
 
-Here `roomNumber` will be replaced with `23`.
 
-Note that specifying too few or too many parameters will result in an error message. For advanced use cases you can add, change, remove (even redundant path parameters) from a [filter](#filters).
+注意，指定太少或太多的参数将导致错误消息。对于高级用例，您可以从[filter]（＃filters）添加，更改，删除（甚至冗余的路径参数）。
+
 
 ## Cookies ##
-In its simplest form you specify cookies like this:
+
+通常模式下，您可以通过以下方法指定Cookie：
 ```java
 given().cookie("username", "John").when().get("/cookie").then().body(equalTo("username"));
 ```
+也可以像这样给cookie指定多个值：
 
-You can also specify a multi-value cookie like this:
 ```java
 given().cookie("cookieName", "value1", "value2"). ..
 ```
 This will create _two_ cookies, `cookieName=value1` and `cookieName=value2`.
 
-You can also specify a detailed cookie using:
+这将创建两个cookie，cookieName = value1和cookieName = value2。
+
+您还可以使用以下方式指定详细的Cookie：
+
 ```java
 Cookie someCookie = new Cookie.Builder("some_cookie", "some_value").setSecured(true).setComment("some comment").build();
 given().cookie(someCookie).when().get("/cookie").then().assertThat().body(equalTo("x"));
 ```
 
-or several detailed cookies at the same time:
+或同时指定cookies：
+
 ```java
 Cookie cookie1 = Cookie.Builder("username", "John").setComment("comment 1").build();
 Cookie cookie2 = Cookie.Builder("token", 1234).setComment("comment 2").build();
@@ -1061,21 +1092,23 @@ given().header("MyHeader", "Something").and(). ..
 given().headers("MyHeader", "Something", "MyOtherHeader", "SomethingElse").and(). ..
 ```
 
-You can also specify a multi-value headers like this:
+也可以给一个headers指定多个值：
 ```java
 given().header("headerName", "value1", "value2"). ..
 ```
-This will create _two_ headers, `headerName: value1` and `headerName: value2`.
 
-#### Header Merging/Overwriting ####
+这将创建两个header,headerName = value1和headerName = value2
 
-By default headers are merged. So for example if you do like this:
+#### Header 合并/覆盖 ####
+
+默认情况下，header合并可以这样：
 
 ```java
 given().header("x", "1").header("x", "2"). ..
 ```
 
-The request will contain two headers, "x: 1" and "x: 2". You can change in this on a per header basis in the [HeaderConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/HeaderConfig.html). For example:
+
+请求将包含两个标头，“x：1”和“x：2”。您可以在[HeaderConfig]（http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/HeaderConfig.html）的基础上进行更改。例如：
 
 ```java
 given().
@@ -1086,8 +1119,7 @@ when().
         get("/something").
 ...
 ```
-
-This means that only one header, "x: 2", is sent to server.
+这意味着只有header “x = 2”被发送到服务器
 
 ## Content Type ##
 ```java
@@ -1096,7 +1128,7 @@ given().contentType("application/json"). ..
 ```
 
 
-## Request Body ##
+## 请求正文 ##
 ```java
 given().body("some body"). .. // Works for POST, PUT and DELETE requests
 given().request().body("some body"). .. // More explicit (optional)
@@ -1107,14 +1139,20 @@ given().body(new byte[]{42}). .. // Works for POST, PUT and DELETE
 given().request().body(new byte[]{42}). .. // More explicit (optional)
 ```
 
-You can also serialize a Java object to JSON or XML. Click [here](#serialization) for details.
 
-# Verifying Response Data #
-You can also verify status code, status line, cookies, headers, content type and body.
-## Response Body ##
-See Usage examples, e.g. [JSON](#example-1---json) or [XML](#example-2---xml).
+您还可以将Java对象序列化为JSON或XML。点击[这里](#serialization)了解详情。
 
-You can also map a response body to a Java Object, click [here](#deserialization) for details.
+
+# 验证响应数据 #
+
+您还可以验证状态码，状态行，Cookie，headers，内容类型和正文。
+
+## 响应体 ##
+
+请参阅使用示例，例如[JSON](#example-1---json) 或 [XML](#example-2---xml).
+
+您还可以将响应正文映射到Java对象，单击[这里](#deserialization) 了解详细信息。
+
 
 ## Cookies ##
 ```java
@@ -1123,7 +1161,7 @@ get("/x").then().assertThat().cookies("cookieName1", "cookieValue1", "cookieName
 get("/x").then().assertThat().cookies("cookieName1", "cookieValue1", "cookieName2", containsString("Value2")). ..
 ```
 
-## Status ##
+## 状态码、状态行 ##
 ```java
 get("/x").then().assertThat().statusCode(200). ..
 get("/x").then().assertThat().statusLine("something"). ..
@@ -1139,8 +1177,7 @@ get("/x").then().assertThat().headers("headerName1", "headerValue1", "headerName
 get("/x").then().assertThat().headers("headerName1", "headerValue1", "headerName2", containsString("Value2")). ..
 ```
 
-It's also possible to use a mapping function when validating headers. For example let's say you want to validate that the `Content-Length` header is less than 1000. You can then use a mapping function to first convert the header value to an int and then use an `Integer` before validating it with a Hamcrest matcher:
-
+还可以在验证头时使用映射函数。 例如，假设您要验证“Content-Length”头部小于1000.然后，您可以使用映射函数首先将头值转换为int，然后在使用Hamcrest验证前使用“整数” 匹配器：
 ```java
 get("/something").then().assertThat().header("Content-Length", Integer::parseInt, lessThan(1000));
 ```
@@ -1151,18 +1188,21 @@ get("/x").then().assertThat().contentType(ContentType.JSON). ..
 ```
 
 
-## Full body/content matching ##
+## 全部内容匹配 ##
 
 ```java
 get("/x").then().assertThat().body(equalTo("something")). ..
 ```
 
-## Use the response to verify other parts of the response ##
-You can use data from the response to verify another part of the response. For example consider the following JSON document returned from service x:
+## 使用响应来验证响应的其他部分 ##
+
+您可以使用响应中的数据来验证响应的另一部分。 例如，考虑从服务x返回的以下JSON：
 ```javascript
 { "userId" : "some-id", "href" : "http://localhost:8080/some-id" }
 ```
-You may notice that the "href" attribute ends with the value of the "userId" attribute. If we want to verify this we can implement a `io.restassured.matcher.ResponseAwareMatcher` and use it like this:
+
+您可能会注意到，“href”属性以“userId”属性的值结尾。 如果我们想验证这个，我们可以实现一个io.restassured.matcher.ResponseAwareMatcher，可以像这样使用：
+
 ```java
 get("/x").then().body("href", new ResponseAwareMatcher<Response>() {
                                   public Matcher<?> matcher(Response response) {
@@ -1170,39 +1210,38 @@ get("/x").then().body("href", new ResponseAwareMatcher<Response>() {
                                   }
                        });
 ```
-
-If you're using Java 8 you can use a lambda expression instead:
+如果你使用Java 8，你可以使用lambda表达式：
 
 ```java
 get("/x").then().body("href", response -> equalTo("http://localhost:8080/" + response.path("userId"));
 ```
 
-There are some predefined matchers that you can use defined in the `io.restassured.matcher.RestAssuredMatchers` (or `io.restassured.module.mockmvc.matcher.RestAssuredMockMvcMatchers` if using the spring-mock-mvc module). For example:
+有一些预定义的匹配器，您可以使用在io.restassured.matcher.RestAssuredMatchers（或io.restassured.module.mockmvc.matcher.RestAssuredMockMvcMatchers如果使用spring-mock-mvc模块）中定义。 例如：
 ```java
 get("/x").then().body("href", endsWithPath("userId"));
 ```
-`ResponseAwareMatchers` can also be composed, either with another `ResponseAwareMatcher` or with a Hamcrest Matcher. For example:
+ResponseAwareMatchers也可以与另一个ResponseAwareMatcher或与Hamcrest Matcher组成。 例如：
 ```java
 get("/x").then().body("href", and(startsWith("http:/localhost:8080/"), endsWithPath("userId")));
 ```
 
-The `and` method is statically imported from `io.restassured.matcher.ResponseAwareMatcherComposer`.
+ `and` 方法是静态导入的method is statically imported from `io.restassured.matcher.ResponseAwareMatcherComposer`.
 
-## Measuring Response Time ##
+## 测量响应时间 ##
 
-As of version 2.8.0 REST Assured has support measuring response time. For example:
+从 REST Assured  2.8.0开始支持测量响应时间，例如：
 
 ```java
 long timeInMs = get("/lotto").time()
 ```
 
-or using a specific time unit:
+或使用特定时间单位：
 
 ```java
 long timeInSeconds = get("/lotto").timeIn(SECONDS);
-```
 
-where `SECONDS` is just a standard `TimeUnit`. You can also validate it using the validation DSL:
+```
+其中SECONDS只是一个标准的TimeUnit。 您还可以使用验证DSL验证：
 
 ```java
 when().
@@ -1211,7 +1250,7 @@ then().
       time(lessThan(2000L)); // Milliseconds
 ```
 
-or
+或
 
 ```java
 when().
@@ -1220,48 +1259,57 @@ then().
       time(lessThan(2L), SECONDS);
 ```
 
-Please note that response time measurement should be performed when the JVM is hot! (i.e. running a response time measurement when only running a single test will yield erroneous results). Also note that you can only vaguely regard these measurments to correlate with the server request processing time (since the response time will include the HTTP round trip and REST Assured processing time among other things).
+需要注意的是，您只能模糊地将这些测量与服务器请求处理时间相关联（因为响应时间将包括HTTP往返和REST Assured处理时间等）。
 
-# Authentication #
-REST assured also supports several authentication schemes, for example OAuth, digest, certificate, form and preemptive basic authentication. You can either set authentication for each request:
+
+# 认证 #
+
+REST assured还支持多种认证方案，例如OAuth，摘要，证书，表单和抢占式基本认证。 您可以为每个请求设置身份验证：
+
 ```java
 given().auth().basic("username", "password"). ..
 ```
 
-but you can also define authentication for all requests:
+也可以为所有请求定义身份验证：
+
 ```java
 RestAssured.authentication = basic("username", "password");
 ```
-or you can use a [specification](#specification-re-use).
+或者您也可以使用 [specification](#specification-re-use).
 
-## Basic Authentication ##
+## 基本认证 ##
 
-There are two types of basic authentication, preemptive and "challenged basic authentication".
+有两种类型的基本认证，抢占和“受质询的基本认证”。
 
-### Preemptive Basic Authentication ###
-This will send the basic authentication credential even before the server gives an unauthorized response in certain situations, thus reducing the overhead of making an additional connection. This is typically what you want to use in most situations unless you're testing the servers ability to challenge. Example:
+### 抢占式基本认证 ###
+
+服务器在某些情况下给出未授权响应之前发送基本认证凭证，从而减少进行附加连接的开销。 大多数情况下可以这么使用：
 
 ```java
 given().auth().preemptive().basic("username", "password").when().get("/secured/hello").then().statusCode(200);
 ```
 
-### Challenged Basic Authentication ###
-When using "challenged basic authentication" REST Assured will not supply the credentials unless the server has explicitly asked for it. This means that REST Assured will make an additional request to the server in order to be challenged and then follow up with the same request once more but this time setting the basic credentials in the header.
+### 受质询的基本认证 ###
+
+使用“受质询的基本认证”时，REST Assured将不提供凭据，除非服务器已明确要求。 这意味着REST Assured将向服务器发出一个附加请求，以便进行质询，然后再次处理相同的请求，但此时会在标头中设置基本凭据。
 
 ```java
 given().auth().basic("username", "password").when().get("/secured/hello").then().statusCode(200);
 ```
 
-## Digest Authentication ##
-Currently only "challenged digest authentication" is supported. Example:
+## 摘要认证 ##
+
+目前只支持受质询的摘要认证：
+
 
 ```java
 given().auth().digest("username", "password").when().get("/secured"). ..
 ```
 
-## Form Authentication ##
+## 表单认证 ##
 
-[Form authentication](https://en.wikipedia.org/wiki/Form-based_authentication) is very popular on the internet. It's typically associated with a user filling out his credentials (username and password) on a webpage and then pressing a login button of some sort. A very simple HTML page that provide the basis for form authentication may look like this:
+[表单认证](https://en.wikipedia.org/wiki/Form-based_authentication)在互联网上非常流行。 它通常与用户在网页上填写其凭据（用户名和密码），然后按某种类型的登录按钮相关联。 提供表单身份验证基础的一个非常简单的HTML页面可能如下所示
+
 ```html
 <html>
   <head>
@@ -1280,7 +1328,7 @@ given().auth().digest("username", "password").when().get("/secured"). ..
  </html>
 ```
 
-I.e. the server expects the user to fill-out the "j_username" and "j_password" input fields and then press "submit" to login. With REST Assured you can test a service protected by form authentication like this:
+也就是说 服务器期望用户填写“j_username”和“j_password”输入字段，然后按“提交”登录。 使用REST Assured，您可以测试受表单身份验证保护的服务，如下所示：
 
 ```java
 given().
@@ -1290,8 +1338,7 @@ when().
 then().
         statusCode(200);
 ```
-
-While this may work it's not optimal. What happens when form authentication is used like this in REST Assured an additional request have to made to the server in order to retrieve the webpage with the login details. REST Assured will then try to parse this page and look for two input fields (with username and password) as well as the form action URI. This may work or fail depending on the complexity of the webpage. A better option is to supply the these details when setting up the form authentication. In this case one could do:
+ 在REST中使用此类表单身份验证时会发生什么会导致为了检索包含登录详细信息的网页而向服务器发出附加请求。 REST Assured将尝试解析此页面并查找两个输入字段（使用用户名和密码）以及表单操作URI。 这可能失败，取决于网页的复杂性。 更好的选择是在设置表单身份验证时提供这些详细信息。 在这种情况下，可以：
 
 ```java
 given().
@@ -1301,9 +1348,7 @@ when().
 then().
         statusCode(200);
 ```
-
-This way REST Assured doesn't need to make an additional request and parse the webpage. There's also a predefined FormAuthConfig called `springSecurity` that you can use if you're using the default Spring Security properties:
-
+这样REST Assured不需要提出额外的请求并解析网页。 还有一个预定义的FormAuthConfig称为`springSecurity`，如果你使用默认的Spring Security属性，你可以使用它：
 ```java
 given().
         auth().form("John", "Doe", FormAuthConfig.springSecurity()).
@@ -2096,149 +2141,164 @@ String response = get("/rest/api/2.0.alpha1/search?jql={q}", query);
 ..
 ```
 
-# Proxy Configuration #
-Starting from version 2.3.2 REST Assured has better support for proxies. For example if you have a proxy at localhost port 8888 you can do:
+# 代理（proxy）配置 #
+
+从版本2.3.2开始REST Assured可以更好地支持代理。 例如，如果你有一个代理在localhost端口8888你可以做：
 ```java
 given().proxy("localhost", 8888). .. 
 ```
-
-Actually you don't even have to specify the hostname if the server is running on your local environment:
-
+如果服务器在本地环境中运行，可以不指定主机名：
 ```java
 given().proxy(8888). .. // Will assume localhost
 ```
-
-To use HTTPS you need to supply a third parameter (scheme) or use the `io.restassured.specification.ProxySpecification`. For example:
+要使用HTTPS，需要提供第三个参数（scheme）或使用`io.restassured.specification.ProxySpecification`。 例如：
 
 ```java
 given().proxy(host("localhost").withScheme("https")). ..
 ```
 
-where `host` is statically imported from `io.restassured.specification.ProxySpecification`.
+其中host从io.restassured.specification.ProxySpecification静态导入。
 
-Starting from version 2.7.0 you can also specify preemptive basic authentication for proxies. For example:
+从版本2.7.0开始，您还可以为代理指定抢占式基本身份验证。 例如：
   
 ```
 given().proxy(auth("username", "password")).when() ..
 ```
 
-where `auth` is statically imported from [io.restassured.specification.ProxySpecification](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/specification/ProxySpecification.html). You can of course also combine authentication with a different host:
-
+其中`auth`是从[io.restassured.specification.ProxySpecification](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/specification/ProxySpecification.html)静态导入的，也可以将身份验证与不同的host相结合：
 ```java
 given().proxy(host("http://myhost.org").withAuth("username", "password")). ..
 ```
 
-## Static Proxy Configuration ##
+## 静态代理配置 ##
 
-It's also possible to configure a proxy statically for all requests, for example:
+可以为所有请求配置静态代理，例如：
 ```java
 RestAssured.proxy("localhost", 8888);    
 ```
 
-or:
+或者：
 
 ```java
 RestAssured.proxy = host("localhost").withPort(8888);
 ```
 
-## Request Specification Proxy Configuration ##
-You can also create a request specification and specify the proxy there:
+## 请求规范代理配置 ##
+
+您还可以创建请求规范并在其中指定代理：
 
 ```java
 RequestSpecification specification = new RequestSpecBuilder().setProxy("localhost").build();
 given().spec(specification). ..
 ```
 
-# Detailed configuration #
-Detailed configuration is provided by the [RestAssuredConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/RestAssuredConfig.html) instance with which you can configure the parameters of [HTTP Client](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/HttpClientConfig.html) as well as [Redirect](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/RedirectConfig.html), [Log](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/LogConfig.html), [Encoder](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/EncoderConfig.html), [Decoder](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/DecoderConfig.html), [Session](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/SessionConfig.html), [ObjectMapper](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/ObjectMapperConfig.html), [Connection](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/ConnectionConfig.html), [SSL](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/SSLConfig.html) and [ParamConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/ParamConfig.html) settings. Examples:
+# 详细配置 #
 
-For a specific request:
+详细配置由[RestAssuredConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/RestAssuredConfig.html)实例提供，您可以使用它配置[HTTP Client](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/HttpClientConfig.html)的参数以及[重定向](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/RedirectConfig.html)，[日志](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/LogConfig.html)，[编码器](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/EncoderConfig.html)，[解码器](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/DecoderConfig.html)，[Session](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/SessionConfig.html)，[ObjectMapper](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/ObjectMapperConfig.html)，[Connection](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/ConnectionConfig.html)，[SSL](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/SSLConfig.html)和[ParamConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/ParamConfig.html) 设置。 例子：
+
+特定请求:
 ```java
 given().config(RestAssured.config().redirect(redirectConfig().followRedirects(false))). ..
 ```
-or using a RequestSpecBuilder:
+
+或使用RequestSpecBuilder：
 ```java
 RequestSpecification spec = new RequestSpecBuilder().setConfig(RestAssured.config().redirect(redirectConfig().followRedirects(false))).build();
 ```
-or for all requests:
+
+或所有请求：
 ```java
 RestAssured.config = config().redirect(redirectConfig().followRedirects(true).and().maxRedirects(0));
 ```
 `config()` and `newConfig()` can be statically imported from `io.restassured.config.RestAssuredConfig`.
 
-## Encoder Config ##
-With the [EncoderConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/EncoderConfig.html) you can specify the default content encoding charset (if it's not specified in the content-type header) and query parameter charset for all requests. If no content charset is specified then ISO-8859-1 is used and if no query parameter charset is specified then UTF-8 is used. Usage example:
+## 编码配置 ##
+
+使用[EncoderConfig]（http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/EncoderConfig.html），可以指定默认的内容encoding charset（如果没有在content-type头中指定）和查询参数charset为所有请求。 如果未指定内容字符集，则使用ISO-8859-1，如果未指定查询参数字符集，则使用UTF-8。 用法示例：
 ```java
 RestAssured.config = RestAssured.config().encoderConfig(encoderConfig().defaultContentCharset("US-ASCII"));
 ```
 
-You can also specify which encoder charset to use for a specific content-type if no charset is defined explicitly for this content-type by using the `defaultCharsetForContentType` method in the [EncoderConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/EncoderConfig.html). For example:
+如果没有通过使用[EncoderConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/EncoderConfig.html)中的defaultCharsetForContentType方法为此内容类型显式定义字符集，那么还可以指定用于特定内容类型的编码器字符集。 例如：
 
 ```java
 RestAssured.config = RestAssured.config(config().encoderConfig(encoderConfig().defaultCharsetForContentType("UTF-16", "application/xml")));
 ```
 
-This will assume UTF-16 encoding for "application/xml" content-types that does explicitly specify a charset. By default "application/json" is specified to use "UTF-8" as default content-type as this is specified by [RFC4627](https://www.ietf.org/rfc/rfc4627.txt).
+这将假设明确指定一个字符集的“application / xml”内容类型的UTF-16编码。 默认情况下，“application / json”被指定为使用“UTF-8”作为默认内容类型，这是由[RFC4627]（https://www.ietf.org/rfc/rfc4627.txt）指定的。
 
-### Avoid adding the charset to content-type header automatically ###
+### 避免自动将字符集添加到content-type标头 ###
 
-By default REST Assured adds the charset header automatically. To disable this completely you can configure the `EncoderConfig` like this:
+默认情况下，REST Assured会自动添加字符集标头。 要完全禁用这个，你可以这样配置`EncoderConfig`：
 
 ```java
 RestAssured.config = RestAssured.config(config().encoderConfig(encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false));
 ```
 
-## Decoder Config ##
-With the [DecoderConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/DecoderConfig.html) you can set the default response content decoding charset for all responses. This is useful if you expect a different content charset than ISO-8859-1 (which is the default charset) and the response doesn't define the charset in the content-type header. Usage example:
+## 解码配置 ##
+
+使用[DecoderConfig]（http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/DecoderConfig.html），您可以将默认响应内容解码字符集设置为 所有响应。 如果您期望使用不同于ISO-8859-1的内容字符集（这是默认字符集），并且响应未在内容类型标头中定义字符集，那么这将非常有用。 用法示例：
+
 ```java
 RestAssured.config = RestAssured.config().decoderConfig(decoderConfig().defaultContentCharset("UTF-8"));
 ```
 
-You can also use the `DecoderConfig` to specify which content decoders to apply. When you do this the `Accept-Encoding` header will be added automatically to the request and the response body will be decoded automatically. By default GZIP and DEFLATE decoders are enabled. To for example to remove GZIP decoding but retain DEFLATE decoding you can do the following:
+您还可以使用“DecoderConfig”来指定要应用哪些内容解码器。 当你这样做时，“Accept-Encoding”头部将被自动添加到请求中，并且响应主体将被自动解码。 默认情况下，启用GZIP和DEFLATE解码器。 例如要删除GZIP解码但保留DEFLATE解码，您可以执行以下操作：
+您还可以使用“DecoderConfig”来指定要应用哪些内容解码器。 当你这样做时，“Accept-Encoding”头部将被自动添加到请求中，并且响应主体将被自动解码。 默认情况下，启用GZIP和DEFLATE解码器。 例如要删除GZIP解码但保留DEFLATE解码，您可以执行以下操作：
+
 ```java
 given().config(RestAssured.config().decoderConfig(decoderConfig().contentDecoders(DEFLATE))). ..
 ```
 
-You can also specify which decoder charset to use for a specific content-type if no charset is defined explicitly for this content-type by using the "defaultCharsetForContentType" method in the [DecoderConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/DecoderConfig.html). For example:
+如果没有通过使用[DecoderConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/DecoderConfig.html)中的“defaultCharsetForContentType”方法为此内容类型明确定义字符集，则还可以指定要用于特定内容类型的解码器字符集。 例如：
   
 ```java
 RestAssured.config = config(config().decoderConfig(decoderConfig().defaultCharsetForContentType("UTF-16", "application/xml")));
  ```
-This will assume UTF-16 encoding for "application/xml" content-types that does explicitly specify a charset. By default "application/json" is using "UTF-8" as default charset as this is specified by [RFC4627](https://www.ietf.org/rfc/rfc4627.txt).
 
-## Session Config ##
-With the session config you can configure the default session id name that's used by REST Assured. The default session id name is `JSESSIONID` and you only need to change it if the name in your application is different and you want to make use of REST Assured's [session support](#Session_support). Usage:
+这将假设明确指定一个字符集的“application / xml”内容类型的UTF-16编码。 默认情况下，“application / json”使用“UTF-8”作为默认字符集，这是由[RFC4627]（https://www.ietf.org/rfc/rfc4627.txt）指定的。
+
+## Session配置 ##
+
+使用Session配置，您可以配置REST Assured使用的默认session ID名称。 默认session id名称是`JSESSIONID`，如果应用程序中的名称不同，并且您希望使用REST Assured的[会话支持]（＃Session_support），您只需更改它。 用法：
 
 ```java
 RestAssured.config = RestAssured.config().sessionConfig(new SessionConfig().sessionIdName("phpsessionid"));
 ```
 
-## Redirect DSL ##
-Redirect configuration can also be specified using the DSL. E.g.
+## 重定向 DSL ##
+
+重定向配置可以使用DSL指定。 例如。
+
 ```java
 given().redirects().max(12).and().redirects().follow(true).when(). .. 
 ```
 
-## Connection Config ##
-Lets you configure connection settings for REST Assured. For example if you want to force-close the Apache HTTP Client connection after each response. You may want to do this if you make a lot of fast consecutive requests with small amount of data in the response. However if you're downloading (especially large amounts of) chunked data you must not close connections after each response. By default connections are _not_ closed after each response.
+## 网络连接配置 ##
+
+让您配置REST Assured的连接设置。 例如，如果要在每个响应后强制关闭Apache HTTP Client连接。 如果您在响应中使用少量数据进行大量快速连续请求，则可能需要执行此操作。然而，如果你正在下载（尤其是大量的）分块，你绝不能每个响应后关闭连接的数据。 默认情况下，连接在每个响应后不关闭。
 
 ```java
 RestAssured.config = RestAssured.config().connectionConfig(connectionConfig().closeIdleConnectionsAfterEachResponse());
 ```
 
 ## Json Config ##
-[JsonPathConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/path/json/config/JsonPathConfig.html) allows you to configure the Json settings either when used by REST Assured or by [JsonPath](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/path/json/JsonPath.html). It let's you configure how JSON numbers should be treated.
+
+[JsonPathConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/path/json/config/JsonPathConfig.html)允许您在REST Assured或 [JsonPath](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/path/json/JsonPath.html)使用时配置Json设置。 它让你配置如何处理JSON数字。
+
 ```java
 RestAssured.config = RestAssured.config().jsonConfig(jsonConfig().numberReturnType(NumberReturnType.BIG_DECIMAL))
 ```
 
-## HTTP Client Config ##
-Let's you configure properties for the HTTP Client instance that REST Assured will be using when executing requests. By default REST Assured creates a new instance of http client for each "given" statement. To configure reuse do the following:
+## HTTP Client 配置 ##
+
+为REST Assured将在执行请求时使用的HTTP Client实例配置属性。 默认情况下，REST Assured会为每个“given”语句创建一个新的http Client实例。 要配置重用，请执行以下操作：
+
 ```java
 RestAssured.config = RestAssured.config().httpClient(httpClientConfig().reuseHttpClientInstance());
 ```
+您还可以使用`httpClientFactory`方法提供自定义HTTP Client实例，例如：
 
-You can also supply a custom HTTP Client instance by using the `httpClientFactory` method, for example:
 ```java
 RestAssured.config = RestAssured.config().httpClient(httpClientConfig().httpClientFactory(
          new HttpClientConfig.HttpClientFactory() {
@@ -2250,12 +2310,14 @@ RestAssured.config = RestAssured.config().httpClient(httpClientConfig().httpClie
         }));
 ```
 
-**Note that currently you need to supply an instance of `AbstractHttpClient`.**
+**注意，目前你需要提供一个`AbstractHttpClient`的实例.**
 
-It's also possible to configure default parameters etc.
+也可以配置默认参数等。
 
-## SSL Config ##
-The [SSLConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/SSLConfig.html) allows you to specify more advanced SSL configuration such as truststore, keystore type and host name verifier. For example:
+## SSL 配置 ##
+
+[SSLConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/SSLConfig.html) 允许您指定更高级的SSL配置，如信任库，密钥库类型和主机名验证器。 例如：
+
 ```java
 RestAssured.config = RestAssured.config().sslConfig(sslConfig().with().keystoreType(<type>).and().strictHostnames());
 ```
