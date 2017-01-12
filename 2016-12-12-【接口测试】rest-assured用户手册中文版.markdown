@@ -1066,7 +1066,6 @@ given().cookie("username", "John").when().get("/cookie").then().body(equalTo("us
 ```java
 given().cookie("cookieName", "value1", "value2"). ..
 ```
-This will create _two_ cookies, `cookieName=value1` and `cookieName=value2`.
 
 这将创建两个cookie，cookieName = value1和cookieName = value2。
 
@@ -1359,9 +1358,9 @@ then().
 ```
 
 ### CSRF ###
-Today it's common for the server to supply a [CSRF](https://en.wikipedia.org/wiki/Cross-site_request_forgery) token with the response in order to avoid these kinds of attacks. REST Assured has support for automatically parsing and supplying the CSRF token to the server. In order for this to work REST Assured *must* make an additional request and parse (parts) of the website.
+如今，服务器要求请求中提供一个[CSRF](https://en.wikipedia.org/wiki/Cross-site_request_forgery) token是常有的事了，这可以抵御多种类型的攻击。rest-assured支持解析并自动给服务器供应一个CSRF token。为此，rest-assured必须先发起一个追加请求来解析该网站（的部分内容）。
 
-You can enable CSRF support by doing the following:
+你可以通过下面的代码启用对CSRF的支持：
 
 ```java
 given().
@@ -1372,7 +1371,7 @@ then().
         statusCode(200);
 ```
 
-Now REST Assured will automatically try to detect if the webpage contains a CSRF token. In order to assist REST Assured and make the parsing more robust it's possible to supply the CSRF field name (here we imagine that we're using Spring Security default values and thus can make use of the predefined `springSecurity` FormAuthConfig):
+现在rest-assured将会自动尝试侦测这个网站是否包含CSRF token机制。为了使rest-assured的暴力破解更加顺利，可能会提供一个CSRF域的名称（这里我们假设我们正在使用Spring的安全默认值，因此我们可以使用预定义的`springSecurity`表单认证配置）：
 
 ```java
 given().
@@ -1383,9 +1382,9 @@ then().
         statusCode(200);
 ```
 
-We've now told REST Assured to search for the CSRF field name called "_csrf" (which is it both faster and less prone to error).
+我们至此已经告诉rest-assured去查找名为"_csrf"的CSRF域了（然而这虽然会比自动侦测更快，也更容易出错）。
 
-By default the CSRF value is sent as a form parameter with the request but you can configure to send it as a header instead if that's required:
+默认情况下CSRF值将会作为一个请求参数，但是如果必要你也可以配置其放在请求的header中：
 
 ```java
 given().
@@ -1398,7 +1397,7 @@ then().
 
 ## OAuth ##
 
-In order to use OAuth 1 and OAuth 2 (for query parameter signing) you need to add [Scribe](https://github.com/fernandezpablo85/scribe-java) to your classpath (if you're using version 2.1.0 or older of REST Assured then please refer to the [legacy](Usage_Legacy#OAuth) documentation). In Maven you can simply add the following dependency:
+为了使用OAuth1和OAuth2（关于查询/请求参数签名方面的机制），您需要添加[Scribe](https://github.com/fernandezpablo85/scribe-java)到classpath中（如果你正在使用2.1.0或者更早之前版本的rest-assured，请参考[旧版指南](https://github.com/rest-assured/rest-assured/wiki/Usage_Legacy#OAuth)）。如果是maven请添加以下的依赖：
 ```xml
 <dependency>
             <groupId>org.scribe</groupId>
@@ -1408,30 +1407,30 @@ In order to use OAuth 1 and OAuth 2 (for query parameter signing) you need to ad
 </dependency>
 ```
 
-If you're not using Maven [download](https://github.com/fernandezpablo85/scribe-java/releases) a Scribe release manually and put it in your classpath.
+如果您没有使用maven，可以[下载](https://github.com/fernandezpablo85/scribe-java/releases)一个Scribe发行包并把它发在classpath下。
 
 ### OAuth 1 ###
-OAuth 1 requires [Scribe](#oauth) in the classpath. To use auth 1 authentication you can do:
+OAuth1要求[Scribe](#oauth)在classpath中。为使用auth1的认证您可以：
 ```java
 given().auth().oauth(..). ..
 ```
 
 ### OAuth 2 ###
-Since version `2.5.0` you can use OAuth 2 authentication without depending on [Scribe](#oauth):
+自从2.5.0版本您可以依赖于[Scribe](#oauth)使用OAuth2的认证：
 ```java
 given().auth().oauth2(accessToken). ..
 ```
-This will put the OAuth2 `accessToken` in a header. To be more explicit you can also do:
+这将会把OAuth2的`accessToken`放入header中。想要更加显式的操作可以：
 ```java
 given().auth().preemptive().oauth2(accessToken). ..
 ```
-There reason why `given().auth().oauth2(..)` still exists is for backward compatibility (they do the same thing). If you need to provide the OAuth2 token in a query parameter you currently need [Scribe](#oauth) in the classpath. Then you can do like this:
+这里之所以存在`given().auth().oauth2(..)`这种语法是为了向后兼容(做的是相同的事情)。如果你需要在请求参数中提供一个OAuth2 token，您需要把[Scribe](#oauth)放在classpath下，接下来：
 ```java
 given().auth().oauth2(accessToken, OAuthSignature.QUERY_STRING). ..
 ```
 
-## Custom Authentication ##
-Rest Assured allows you to create custom authentication providers. You do this by implementing the `io.restassured.spi.AuthFilter` interface (preferably) and apply it as a [filter](#filters). For example let's say that your security consists of adding together two headers together in a new header called "AUTH" (this is of course not secure). Then you can do that like this (Java 8 syntax):
+## 自定义身份验证 ##
+rest-assured允许您创建一个自定义的身份验证。你可以通过实现`io.restassured.spi.AuthFilter`接口，并作为一个拦截器。举个例子假设您的安全机制，是由两个header值相加然后组成一个新的叫做"AUTH"的header（当然这并不安全）。然后您可以这样做（Java 8的语法）：
 ```java
 given().
         filter((requestSpec, responseSpec, ctx) -> {
@@ -1446,10 +1445,10 @@ then().
   statusCode(200);
 ```
 
-The reason why you want to use a `AuthFilter` and not `Filter` is that `AuthFilters` are automatically removed when doing `given().auth().none(). ..`.
+使用`AuthFilter`而不是`Filter`的原因是，当我们执行`given().auth().none(). ..`类似这样的操作时`AuthFilters`会被自动移除。
 
-# Multi-part form data #
-When sending larger amount of data to the server it's common to use the multipart form data technique. Rest Assured provide methods called `multiPart` that allows you to specify a file, byte-array, input stream or text to upload. In its simplest form you can upload a file like this:
+# Multi-part 表单数据 #
+通常我们在向服务器传输大容量的数据时（译者注：比如文件）会使用multipart表单数据技术。rest-assured提供了一种`multiPart`方法来辨别这究竟是文件、二进制序列、输入流还是上传的文本。表单中上传一个文件可以这样：
 
 ```java
 given().
@@ -1458,7 +1457,7 @@ when().
         post("/upload");
 ```
 
-It will assume a control name called "file". In HTML the control name is the attribute name of the input tag. To clarify let's look at the following HTML form:
+它将会假设有一个control叫做"file"。在HTML中这意味着input标签的属性值为file。为了解释得更清楚请看下面的HTML表单：
 
 ```html
 <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
@@ -1467,7 +1466,7 @@ It will assume a control name called "file". In HTML the control name is the att
 </form>
 ```
 
-The control name in this case is the name of the input tag with name "file". If you have a different control name then you need to specify it:
+在这个例子中control的名字就是一个属性名为file的input标签。如果您使用的control名不是这个，需要指定：
 
 ```java
 given().
@@ -1476,7 +1475,7 @@ when().
         post("/upload");
 ```
 
-It's also possible to supply multiple "multi-parts" entities in the same request:
+在同一个请求中提供多个"multi-parts"事务也是可能的：
 
 ```java
 byte[] someData = ..
@@ -1488,7 +1487,7 @@ when().
         post("/upload");
 ```
 
-For more advanced use cases you can make use of the [MultiPartSpecBuilder](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/builder/MultiPartSpecBuilder.html). For example:
+更多高级使用方法可以使用[MultiPartSpecBuilder](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/builder/MultiPartSpecBuilder.html)。举个例子：
 
 ```java
 Greeting greeting = new Greeting();
@@ -1505,22 +1504,21 @@ when().
 then().
         statusCode(200);
 ```
-
-You can specify, among other things, the default `control name` and filename using the [MultiPartConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/MultiPartConfig.html). For example:
+你可以通过使用[MultiPartConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/MultiPartConfig.html)指定默认的control名和文件名。举个例子：
 
 ```java
 given().config(config().multiPartConfig(multiPartConfig().defaultControlName("something-else"))). ..
 ```
 
-This will configure the default control name to be "something-else" instead of "file".
+这就会默认把control名配置为"something-else"而不是"file"。
 
-For additional info refer to [this](http://blog.jayway.com/2011/09/15/multipart-form-data-file-uploading-made-simple-with-rest-assured/) blog post.
+其它用法请查阅 [这篇博客](http://blog.jayway.com/2011/09/15/multipart-form-data-file-uploading-made-simple-with-rest-assured/)。
 
-# Object Mapping #
-REST Assured supports mapping Java objects to and from JSON and XML. For JSON you need to have either Jackson or Gson in the classpath and for XML you need JAXB.
+# 对象映射 #
+rest-assured支持从JSON和XML中映射Java对象。映射JSON需要classpath中有Jackson或者Gson才能使用，XML则需要JAXB。
 
-## Serialization ##
-Let's say we have the following Java object:
+## 序列号 ##
+假设我们又下面的Java对象：
 
 ```java
 public class Message {
@@ -1536,9 +1534,9 @@ public class Message {
 }
 ```
 
-and you want to serialize this object to JSON and send it with the request. There are several ways to do this, e.g:
+您需要将这个对象序列化为JSON并发送到请求中。可以有多种方式：
 
-### Content-Type based Serialization ###
+### 基于Content-Type的序列化 ###
 
 ```java
 Message message = new Message();
@@ -1550,14 +1548,14 @@ when().
       post("/message");
 ```
 
-In this example REST Assured will serialize the object to JSON since the request content-type is set to "application/json". It will first try to use Jackson if found in classpath and if not Gson will be used. If you change the content-type to "application/xml" REST Assured will serialize to XML using JAXB. If no content-type is defined REST Assured will try to serialize in the following order:
+在这个例子里，由于请求中的content-type被设置为"application/json"，rest-assured也就会把对象序列化为JSON。rest-assured首先会在您的classpath中寻找Jackson，如果没有则使用Gson。如果您把请求中的content-type修改为"application/xml"，rest-assured将会使用JAXB把对象序列化为XML。如果没有指定content-type，rest-assured会按照以下的优先级进行序列化：
 
-  1. JSON using Jackson 2 (Faster Jackson (databind))
-  1. JSON using Jackson (databind)
-  1. JSON using Gson
-  1. XML using JAXB
+  1. 使用Jackson 2将对象序列化为JSON（Faster Jackson (databind)）
+  1. 使用Jackson将对象序列化为JSON（databind）
+  1. 使用Gson将对象序列化为JSON
+  1. 使用JAXB将对象序列化为XML
 
-REST Assured also respects the charset of the content-type. E.g.
+rest-assured也关心content-type的字符集（charset）等等。
 
 ```java
 Message message = new Message();
@@ -1569,7 +1567,7 @@ when().
       post("/message");
 ```
 
-You can also serialize the `Message` instance as a form parameter:
+您也可以把`Message`这个实例序列化为一个表单参数：
 ```java
 Message message = new Message();
 message.setMessage("My messagee");
@@ -1581,11 +1579,12 @@ when().
 ```
 
 
-The message object will be serialized to JSON using Jackson (databind) (if present) or Gson (if present) with UTF-16 encoding.
+这个message对象将会被实例化为utf-16编码的JSON（如果有Jackson或者Gson）。
 
-### Create JSON from a HashMap ###
 
-You can also create a JSON document by supplying a Map to REST Assured.
+### 由HashMap创建JSON ###
+
+你也可以提供一个Map，由此rest-assured创建一个JSON。
 ```java
 Map<String, Object>  jsonAsMap = new HashMap<>();
 jsonAsMap.put("firstName", "John");
@@ -1600,14 +1599,14 @@ then().
         statusCode(200);
 ```
 
-This will provide a JSON payload as:
+这将会产生一个JSON数据（JSON payload）：
 
 ```javascript
 { "firstName" : "John", "lastName" : "Doe" }
 ```
 
-### Using an Explicit Serializer ###
-If you have multiple object mappers in the classpath at the same time or don't care about setting the content-type you can specify a serializer explicity. E.g.
+### 显示使用序列化器（Using an Explicit Serializer） ###
+如果您的classpath中同时有多个对象、或者不在意content-type的设置，可以显示地指定一个序列化器。
 
 ```java
 Message message = new Message();
@@ -1618,10 +1617,10 @@ when().
       post("/message");
 ```
 
-In this example the Message object will be serialized to XML using JAXB.
+在这个例子中message对象将会被JAXB序列化为一个XML。
 
-## Deserialization ##
-Again let's say we have the following Java object:
+## 反序列化 ##
+让我们再次假设我们又以下的Java对象：
 
 ```java
 public class Message {
@@ -1637,20 +1636,20 @@ public class Message {
 }
 ```
 
-and we want the response body to be deserialized into a Message object.
+我们需要把响应体反序列化为一个Message对象。
 
-### Content-Type based Deserialization ###
-Let's assume then that the server returns a JSON body like this:
+### 基于Content-Type的反序列化 ###
+假设服务端返回一个这样的JSON：
 ```javascript
 {"message":"My message"}
 ```
 
-To deserialize this to a Message object we simply to like this:
+将它反序列化为一个Message对象：
 ```java
 Message message = get("/message").as(Message.class);
 ```
 
-For this to work the response content-type must be "application/json" (or something that contains "json"). If the server instead returned
+为此响应体的content-type必须是"application/json"（或者其它包含“json”的类型）。如果服务端返回：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -1659,35 +1658,35 @@ For this to work the response content-type must be "application/json" (or someth
 </message>
 ```
 
-and a content-type of "application/xml" you wouldn't have to change the code at all:
+且content-type是"application/xml"，代码可以完全不用修改：
 ```java
 Message message = get("/message").as(Message.class);
 ```
 
-#### Custom Content-Type Deserialization ####
-If the server returns a custom content-type, let's say "application/something", and you still want to use the object mapping in REST Assured there are a couple of different ways to go about. You can either use the [explicit](http://code.google.com/p/rest-assured/wiki/Usage#Using_an_Explicit_Deserializer) approach or register a parser for the custom content-type:
+#### 自定义的Content-Type反序列化 ####
+如果服务端返回一个自定义的content-type，假设是"application/something"，你仍然想使用rest-assured的对象映射的话，这有两种方法。你可以使用[显式指定](http://code.google.com/p/rest-assured/wiki/Usage#Using_an_Explicit_Deserializer)的方法或者为自定义的content-type注册一个解析器：
 
 ```java
 Message message = expect().parser("application/something", Parser.XML).when().get("/message").as(Message.class);
 ```
 
-or
+或
 
 ```java
 Message message = expect().defaultParser(Parser.XML).when().get("/message").as(Message.class);
 ```
 
-You can also register a default or custom parser [statically](#default-values) or using [specifications](#specification-re-use).
+你也可以注册一个默认解析器，或者静态式注册一个自定义的解析器，也可以使用[规格说明（specifications）](#specification-re-use)。
 
-### Using an Explicit Deserializer ###
-If you have multiple object mappers in the classpath at the same time  or don't care about the response content-type you can specify a deserializer explicitly. E.g.
+### 使用显示反序列化器 ###
+如果您的classpath下同时有多个对象或者不在意响应体的content-type，你可以使用显示的反序列化器。
 
 ```java
 Message message = get("/message").as(Message.class, ObjectMapperType.GSON);
 ```
 
-## Configuration ##
-You can configure the pre-defined object mappers by using a [ObjectMapperConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/ObjectMapperConfig.html) and pass it to [detailed configuration](#detailed-configuration). For example to change GSON to use lower case with underscores as field naming policy you can do like this:
+## 配置 ##
+您可以使用[ObjectMapperConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/ObjectMapperConfig.html)配置预定义的对象映射，并传递给[细节配置](#detailed-configuration)。举个例子，你可以将GSON的命名策略改为LowerCaseWithUnderscores（译者注：将大写字母改为小写字母并添加下划线）：
 
 ```java
 RestAssured.config = RestAssuredConfig.config().objectMapperConfig(objectMapperConfig().gsonObjectMapperFactory(
@@ -1699,22 +1698,21 @@ RestAssured.config = RestAssuredConfig.config().objectMapperConfig(objectMapperC
         ));
 ```
 
-There are pre-defined object mapper factories for GSON, JAXB, Jackson and Faster Jackson.
+这里为GSON、JAXB、Jackson和Faster Jackson预定义了对象映射的工厂。
 
-## Custom ##
-By default REST Assured will scan the classpath to find various object mappers. If you want to integrate an object mapper that is not supported by default or if you've rolled your own you can implement the
-[io.restassured.mapper.ObjectMapper](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/mapper/ObjectMapper.html) interface. You tell REST Assured to use your object mapper either by passing it as a second parameter to the body:
+## 自定义 ##
+默认情况下rest-assured将会扫描classpath中各种各样的对象映射。如果您想要集成一种对象映射，默认是不支持的，如果您已经做好了封装，可以实现[io.restassured.mapper.ObjectMapper](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/mapper/ObjectMapper.html) 接口。告诉rest-assured使用您的对象映射或者将其作为body方法里的第二个参数：
 
 ```java
 given().body(myJavaObject, myObjectMapper).when().post("..")
 ```
 
-or you can define it statically once and for all:
+或者您可以静态式定义：
 ```java
 RestAssured.config = RestAssuredConfig.config().objectMapperConfig(new ObjectMapperConfig(myObjectMapper));
 ```
 
-For an example see [here](https://github.com/rest-assured/rest-assured/blob/master/examples/rest-assured-itest-java/src/test/java/io/restassured/itest/java/CustomObjectMappingITest.java).
+更多例子参阅[这里](https://github.com/rest-assured/rest-assured/blob/master/examples/rest-assured-itest-java/src/test/java/io/restassured/itest/java/CustomObjectMappingITest.java)。
 
 # Custom parsers #
 REST Assured providers predefined parsers for e.g. HTML, XML and JSON. But you can parse other kinds of content by registering a predefined parser for unsupported content-types by using:
