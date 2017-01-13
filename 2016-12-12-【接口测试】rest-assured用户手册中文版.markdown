@@ -1714,51 +1714,51 @@ RestAssured.config = RestAssuredConfig.config().objectMapperConfig(new ObjectMap
 
 更多例子参阅[这里](https://github.com/rest-assured/rest-assured/blob/master/examples/rest-assured-itest-java/src/test/java/io/restassured/itest/java/CustomObjectMappingITest.java)。
 
-# Custom parsers #
-REST Assured providers predefined parsers for e.g. HTML, XML and JSON. But you can parse other kinds of content by registering a predefined parser for unsupported content-types by using:
+# 自定义解析器 #
+rest-assured提供了预定义的解析器，例如HTML、XML和JSON的。但是您可以通过注册预置的解析器来解析现在不支持的内容类型：
 ```java
 RestAssured.registerParser(<content-type>, <parser>);
 ```
-E.g. to register that mime-type 'application/vnd.uoml+xml' should be parsed using the XML parser do:
+例如注册一个可以解析'application/vnd.uoml+xml'类型的XML解析器：
 ```java
 RestAssured.registerParser("application/vnd.uoml+xml", Parser.XML);
 ```
-You can also unregister a parser using:
+您也可以注销一个解析器：
 ```java
 RestAssured.unregisterParser("application/vnd.uoml+xml");
 ```
 
-Parsers can also be specified per "request":
+解析器可以指定于每个请求中：
 ```java
 get(..).then().using().parser("application/vnd.uoml+xml", Parser.XML). ..;
 ```
 
-and using a [response specification](sSpecification-re-use).
+然后使用[响应体规格说明](sSpecification-re-use)。
 
-# Default parser #
-Sometimes it's useful to specify a default parser, e.g. if the response doesn't contain a content-type at all:
+# 默认解析器 #
+有时指定一个默认的解析器会很有用，如果响应中不包含任何content-type的话。
 
 ```java
 RestAssured.defaultParser = Parser.JSON;
 ```
 
-You can also specify a default parser for a single request:
+你也可以为单独一次请求指定默认的解析器：
 ```java
 get("/x").then().using().defaultParser(Parser.JSON). ..
 ```
 
-or using a [response specification](#specification-re-use).
+或者使用[响应体规范提案](#specification-re-use)。
 
-# Default values #
-By default REST assured assumes host localhost and port 8080 when doing a request. If you want a different port you can do:
+# 默认值 #
+rest-assured发起请求时默认使用localhost的8080端口.如果你需要换个端口：
 ```java
 given().port(80). ..
 ```
-or simply:
+或者简单些:
 ```java
 ..when().get("http://myhost.org:80/doSomething");
 ```
-You can also change the default base URI, base path, port and authentication scheme for all subsequent requests:
+您也可以改变默认的基本URI、基本路径、端口和认证scheme：
 ```java
 RestAssured.baseURI = "http://myhost.org";
 RestAssured.port = 80;
@@ -1766,7 +1766,7 @@ RestAssured.basePath = "/resource";
 RestAssured.authentication = basic("username", "password");
 RestAssured.rootPath = "x.y.z";
 ```
-This means that a request like e.g. `get("/hello")` goes to: http://myhost.org:80/resource/hello with basic authentication credentials "username" and "password". See [rootPath](http://code.google.com/p/rest-assured/wiki/Usage#Root_path) for more info about setting the root paths. Other default values you can specify are:
+这意味着类似`get("/hello")`这样的请求实际上会被解析为http://myhost.org:80/resource/hello，附带身份认证中的用户名和密码属性。关于设置根路径参考[这里](http://code.google.com/p/rest-assured/wiki/Usage#Root_path)。其它的默认值也可以被指定：
 
 ```java
 RestAssured.filters(..); // List of default filters
@@ -1778,15 +1778,15 @@ RestAssured.registerParser(..) // Specify a parser for the given content-type
 RestAssured.unregisterParser(..) // Unregister a parser for the given content-type
 ```
 
-You can reset to the standard baseURI (localhost), basePath (empty), standard port (8080), standard root path (""), default authentication scheme (none) and url encoding enabled (true) using:
+您可以设置重置为标准的baseURI (localhost)，basePath（空），标准端口（8080），标准根路径（“”），默认身份认证scheme（none）和URL编码启用（true）：
 ```java
 RestAssured.reset();
 ```
 
-# Specification Re-use #
-Instead of having to duplicate response expectations and/or request parameters for different tests you can re-use an entire specification. To do this you define a specification using either the [RequestSpecBuilder](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/builder/RequestSpecBuilder.html) or [ResponseSpecBuilder](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/builder/ResponseSpecBuilder.html).
+# 规范提案的复用 #
+与其复制一份响应的断言或者请求参数（的代码）到另一个测试用例中，我们可以使用 [RequestSpecBuilder](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/builder/RequestSpecBuilder.html)或者[ResponseSpecBuilder](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/builder/ResponseSpecBuilder.html)定义一个规范提案。
 
-E.g. let's say you want to make sure that the expected status code is 200 and that the size of the JSON array "x.y" has size 2 in several tests you can define a ResponseSpecBuilder like this:
+举个例子，在多个测试用例中，我们都涉及到这样的内容：判断响应码是否为200，JSON数组x.y的长度是否是2，您可以定义一个ResponseSpecBuilder：
 
 ```java
 ResponseSpecBuilder builder = new ResponseSpecBuilder();
@@ -1802,9 +1802,9 @@ then().
        body("x.y.z", equalTo("something"));
 ```
 
-In this example the data defined in "responseSpec" is merged with the additional body expectation and all expectations must be fulfilled in order for the test to pass.
+在这个例子中需要重用的数据定义并合并在"responseSpec"，=并且仅当所有预期都通过时用例才能通过。
 
-You can do the same thing if you need to re-use request data in different tests. E.g.
+您也可以将相同的请求参数重用：
 ```java
 RequestSpecBuilder builder = new RequestSpecBuilder();
 builder.addParam("parameter1", "parameterValue");
@@ -1820,23 +1820,24 @@ then().
         body("x.y.z", equalTo("something"));        
 ```
 
-Here the request's data is merged with the data in the "requestSpec" so the request will contain two parameters ("parameter1" and "parameter2") and one header ("header1").
+这里请求数据合并在"requestSpec"中，由此上面例子中实际请求参数包括两个("parameter1" 和 "parameter2")和一个header("header1")。
 
-# Filters #
-A filter allows you to inspect and alter a request before it's actually committed and also inspect and [alter](#response-builder) the response before it's returned to the expectations. You can regard it as an "around advice" in AOP terms. Filters can be used to implement custom authentication schemes, session management, logging etc. To create a filter you need to implement the [io.restassured.filter.Filter](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/filter/Filter.html) interface. To use a filter you can do:
+# 拦截器 #
+拦截器会在请求实际发起之前侦测和改变该请求的内容，也可以在响应信息实际返回之前拦截并[改变](#response-builder)。您可以将其理解为AOP中的around advice。拦截器也可以用在认证scheme、session管理、日志中。创建一个拦截器需要实现[io.restassured.filter.Filter](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/filter/Filter.html)接口。使用拦截器：
 
 ```java
 given().filter(new MyFilter()). ..
 ```
 
-There are a couple of filters provided by REST Assured that are ready to use:
-  1. `io.restassured.filter.log.RequestLoggingFilter`: A filter that'll print the request specification details.
-  1. `io.restassured.filter.log.ResponseLoggingFilter`: A filter that'll print the response details if the response matches a given status code.
-  1. `io.restassured.filter.log.ErrorLoggingFilter`: A filter that'll print the response body if an error occurred (status code is between 400 and 500).
+rest-assured提供了几个拦截器：
+  1. `io.restassured.filter.log.RequestLoggingFilter`: 可以打印出请求规范提案的细节。
+  1. `io.restassured.filter.log.ResponseLoggingFilter`: 可以打印响应信息的细节如果响应体的状态码匹配given方法的参数。
+  1. `io.restassured.filter.log.ErrorLoggingFilter`: 如果发生了异常（状态码在400和500之间），拦截器将会打印响应的内容。
+
 
 ## Response Builder ##
 
-If you need to change the [Response](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/response/Response.html) from a filter you can use the [ResponseBuilder](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/builder/ResponseBuilder.html) to create a new Response based on the original response. For example if you want to change the body of the original response to something else you can do:
+如果您想要通过一个拦截器改变[Response](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/response/Response.html) ，可以使用[ResponseBuilder](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/builder/ResponseBuilder.html)创建一个基于原始response的新实例。比如把原始响应体改为something：
 ```java
 Response newResponse = new ResponseBuilder().clone(originalResponse).setBody("Something").build();
 ```
