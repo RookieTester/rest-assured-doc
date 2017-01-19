@@ -81,7 +81,7 @@ REST Assured是一个可以简化HTTP Builder顶层 基于REST服务的测试过
   1. [默认解析器](#默认解析器)
 1. [默认值](#默认值)
 1. [模式复用](#模式复用)
-1. [拦截器](#拦截器)
+1. [过滤器](#过滤器)
   1. [Response Builder](#response-builder)
 1. [日志](#日志)
   1. [请求日志](#请求日志)
@@ -90,7 +90,7 @@ REST Assured是一个可以简化HTTP Builder顶层 基于REST服务的测试过
 1. [根路径](#根路径)
   1. [路径参数](#路径参数)
 1. [Session支持](#Session支持)
-  1. [Session过滤](#Session拦截器)
+  1. [Session过滤器](#Session过滤器)
 1. [SSL](#ssl)
   1. [SSL无效的主机名](#SSL无效主机名)
 1. [URL编码](#URL编码)
@@ -117,7 +117,7 @@ REST Assured是一个可以简化HTTP Builder顶层 基于REST服务的测试过
   1. [Specifications](#specifications)
   1. [重置 RestAssuredMockMvc](#resetting-restassuredmockmvc)
   1. [Spring MVC 身份认证](#spring-mvc-authentication)
-     1. [使用Spring的安全测试](#using-spring-security-test)
+     1. [使用 Spring Security 测试](#使用 Spring Security 测试)
      1. [注入一个用户](#injecting-a-user)
   1. [参数相关](#note-on-parameters)
 1. [Scala支持](#scala-support-module)
@@ -1043,7 +1043,7 @@ then().
 这里 `roomNumber` 的值`My Hotel`将被替换为 `23`.
 
 
-注意，指定太少或太多的参数将导致错误消息。对于高级用例，您可以从[拦截器]（＃拦截器）添加，更改，删除（甚至冗余的路径参数）。
+注意，指定太少或太多的参数将导致错误消息。对于高级用例，您可以从[过滤器]（＃过滤器）添加，更改，删除（甚至冗余的路径参数）。
 
 
 ## Cookie ##
@@ -1421,7 +1421,7 @@ given().auth().oauth2(accessToken, OAuthSignature.QUERY_STRING). ..
 ```
 
 ## 自定义身份验证 ##
-rest-assured允许您创建一个自定义的身份验证。你可以通过实现`io.restassured.spi.AuthFilter`接口，并作为一个拦截器。假设您的安全机制，是由两个header值相加然后组成一个新的叫做"AUTH"的header（当然这并不安全）。然后您可以这样做（Java 8的语法）：
+rest-assured允许您创建一个自定义的身份验证。你可以通过实现`io.restassured.spi.AuthFilter`接口，并作为一个过滤器。假设您的安全机制，是由两个header值相加然后组成一个新的叫做"AUTH"的header（当然这并不安全）。然后您可以这样做（Java 8的语法）：
 ```java
 given().
         filter((requestSpec, responseSpec, ctx) -> {
@@ -1813,31 +1813,31 @@ then().
 
 这里请求数据合并在"requestSpec"中，由此上面例子中实际请求参数包括两个("parameter1" 和 "parameter2")和一个header("header1")。
 
-# 拦截器 #
-拦截器会在请求实际发起之前侦测和改变该请求的内容，也可以在响应体实际返回之前拦截并[改变](#response-builder)。您可以将其理解为AOP中的around advice（译者注：可以自行搜索切片编程）。拦截器也可以用在认证scheme、session管理、日志中。创建一个拦截器需要实现[io.restassured.filter.Filter](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/filter/Filter.html)接口。使用拦截器：
+# 过滤器 #
+过滤器会在请求实际发起之前侦测和改变该请求的内容，也可以在响应体实际返回之前拦截并[改变](#response-builder)。您可以将其理解为AOP中的around advice（译者注：可以自行搜索切片编程）。过滤器也可以用在认证scheme、session管理、日志中。创建一个过滤器需要实现[io.restassured.filter.Filter](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/filter/Filter.html)接口。使用过滤器：
 
 ```java
 given().filter(new MyFilter()). ..
 ```
 
-rest-assured提供了几个拦截器：
+rest-assured提供了几个过滤器：
   1. `io.restassured.filter.log.RequestLoggingFilter`: 可以打印出请求模式的细节。
   1. `io.restassured.filter.log.ResponseLoggingFilter`: 可以打印响应信息的细节如果响应体的状态码匹配given方法的参数。
-  1. `io.restassured.filter.log.ErrorLoggingFilter`: 如果发生了异常（状态码在400和500之间），拦截器将会打印响应的内容。
+  1. `io.restassured.filter.log.ErrorLoggingFilter`: 如果发生了异常（状态码在400和500之间），过滤器将会打印响应的内容。
 
 
 ## Response Builder ##
 
-如果您想要通过一个拦截器改变[Response](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/response/Response.html) ，可以使用[ResponseBuilder](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/builder/ResponseBuilder.html)创建一个基于原始response的新实例。比如把原始响应体改为something：
+如果您想要通过一个过滤器改变[Response](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/response/Response.html) ，可以使用[ResponseBuilder](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/builder/ResponseBuilder.html)创建一个基于原始response的新实例。比如把原始响应体改为something：
 ```java
 Response newResponse = new ResponseBuilder().clone(originalResponse).setBody("Something").build();
 ```
 
 # 日志 #
-在大量的用例中，打印出响应或者请求的细节将有助于创建正确的预期、发送准确的请求。为此您可以使用rest-assured预定义的[拦截器](#filters)，或者使用其中的快捷方法。
+在大量的用例中，打印出响应或者请求的细节将有助于创建正确的预期、发送准确的请求。为此您可以使用rest-assured预定义的[过滤器](#过滤器)，或者使用其中的快捷方法。
 
 ## 请求日志 ##
-自1.5版本起rest-assured支持对[特定的请求](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/specification/RequestSpecification.html)打日志，之前的做法是使用[RequestLoggingFilter（译者注：应该是通过拦截器进行控制）](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/filter/log/RequestLoggingFilter.html)。注意打印日志后HTTP Builder和HTTP Client会添加额外的header内容。这个拦截器可以只记录特定请求的特定细节。换句话说，你可以不关注[RequestLoggingFilter](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/filter/log/RequestLoggingFilter.html)记录的有关实际往服务端发送的内容。因为随后的其它过滤器会在日志记录后改变这个请求。如果你想要记录实际发送的内容，参阅[HTTP Client logging docs](http://hc.apache.org/httpcomponents-client-ga/logging.html) or use an external tool such [Wireshark](http://www.wireshark.org/)，或者使用第三方工具例如[Wireshark](http://www.wireshark.org/)。示例如下：
+自1.5版本起rest-assured支持对[特定的请求](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/specification/RequestSpecification.html)打日志，之前的做法是使用[RequestLoggingFilter（译者注：应该是通过过滤器进行控制）](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/filter/log/RequestLoggingFilter.html)。注意打印日志后HTTP Builder和HTTP Client会添加额外的header内容。这个过滤器可以只记录特定请求的特定细节。换句话说，你可以不关注[RequestLoggingFilter](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/filter/log/RequestLoggingFilter.html)记录的有关实际往服务端发送的内容。因为随后的其它过滤器会在日志记录后改变这个请求。如果你想要记录实际发送的内容，参阅[HTTP Client logging docs](http://hc.apache.org/httpcomponents-client-ga/logging.html) or use an external tool such [Wireshark](http://www.wireshark.org/)，或者使用第三方工具例如[Wireshark](http://www.wireshark.org/)。示例如下：
 ```java
 given().log().all(). .. // Log all request specification details including parameters, headers and body
 given().log().params(). .. // Log only the parameters of the request
@@ -2029,7 +2029,7 @@ given().spec(spec). ..
 String sessionId = get("/something").sessionId();
 ```
 
-## Session拦截器 ##
+## Session过滤器 ##
 2.0.0版本起您可以使用[session filter](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/filter/session/SessionFilter.html)截获并提供一个session，举个例子：
 ```java
 SessionFilter sessionFilter = new SessionFilter();
@@ -2303,3 +2303,521 @@ RestAssured.config = RestAssured.config().httpClient(httpClientConfig().httpClie
 **注意，目前你需要提供一个`AbstractHttpClient`的实例.**
 
 也可以配置默认参数等。
+
+## SSL 配置 ##
+
+[SSLConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/SSLConfig.html) 允许您指定更高级的SSL配置，如信任库，密钥库类型和主机名验证器。 例如：
+
+```java
+RestAssured.config = RestAssured.config().sslConfig(sslConfig().with().keystoreType(<type>).and().strictHostnames());
+```
+
+## 参数配置 ##
+[ParamConfig](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/config/ParamConfig.html) 允许您配置在“冲突”时，更新不同的参数。 默认情况下，所有参数都将合并，因此如果您执行以下操作：
+  
+```java
+given().queryParam("param1", "value1").queryParam("param1", "value2").when().get("/x"). ...
+```
+  
+REST Assured将发送一个查询字符串`param1 = value1＆param1 = value2`。 
+如果这不是您想要的，你可以配置REST Assured为* replace *值代替：
+
+
+```java
+given().
+        config(config().paramConfig(paramConfig().queryParamsUpdateStrategy(REPLACE))).
+        queryParam("param1", "value1").
+        queryParam("param1", "value2").
+when().
+        get("/x"). ..
+```
+
+REST Assured现在将替换`param1`的值为`value2`（因为它是最后写的），而不是将它们合并在一起。 您也可以为所有参数类型的每种类型配置统一的更新策略
+
+```java
+given().config(config().paramConfig(paramConfig().replaceAllParameters())). ..
+```
+
+也支持在[Spring Mock Mvc模块]（# Spring Mock Mvc 模块）（配置[MockMvcParamConfig]（http://static.javadoc.io/io.restassured/spring-mock -mvc / 3.0.1 / io / restassured / module / mockmvc / config / MockMvcParamConfig.html）。
+
+
+# Spring Mock Mvc 模块 #
+
+REST Assured 2.2.0引入了对[Spring Mock Mvc]（http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/test/web/servlet/MockMvc.html）的支持，使用 `spring-mock-mvc`模块。 这意味着您可以单元测试Spring Mvc控制器。 例如给出以下Spring控制器：
+
+```java
+@Controller
+public class GreetingController {
+
+    private static final String template = "Hello, %s!";
+    private final AtomicLong counter = new AtomicLong();
+
+    @RequestMapping(value = "/greeting", method = GET)
+    public @ResponseBody Greeting greeting(
+            @RequestParam(value="name", required=false, defaultValue="World") String name) {
+        return new Greeting(counter.incrementAndGet(), String.format(template, name));
+    }
+}
+```
+
+你可以使用[RestAssuredMockMvc]（http://static.javadoc.io/io.restassured/spring-mock-mvc/3.0.1/io/restassured/module/mockmvc/RestAssuredMockMvc.html）来测试它，像这样：
+
+```java
+given().
+        standaloneSetup(new GreetingController()).
+        param("name", "Johan").
+when().
+        get("/greeting").
+then().
+        statusCode(200).
+        body("id", equalTo(1)).
+        body("content", equalTo("Hello, Johan!"));  
+```
+
+即它与标准的REST Assured语法非常相似。 这使得运行测试真的很快，并且比标准的REST Assured更容易引导环境和使用mock。 你常用的标准REST Assured中的大多数东西都可以使用RestAssured Mock Mvc。 例如（某些）配置，静态规范，日志等等。要使用它，你需要依赖于Spring Mock Mvc模块：
+
+```xml
+<dependency>
+      <groupId>io.rest-assured</groupId>
+      <artifactId>spring-mock-mvc</artifactId>
+      <version>3.0.1</version>
+      <scope>test</scope>
+</dependency>
+```
+
+或者[下载]（http://dl.bintray.com/johanhaleby/generic/spring-mock-mvc-3.0.1-dist.zip）。
+
+## Bootstrapping RestAssuredMockMvc ##
+
+静态导入方法:
+```java
+io.restassured.module.mockmvc.RestAssuredMockMvc.*
+io.restassured.module.mockmvc.matcher.RestAssuredMockMvcMatchers.*
+```
+
+
+
+有关其他静态导入，请参阅文档的[静态导入]（＃static-imports）部分。
+
+为了使用RestAssuredMockMvc启动测试，您需要使用一组控制器，MockMvc实例或Spring的WebApplicationContext来初始化它。您可以对单个请求执行此操作，如上例所示：
+
+
+```java
+given().standaloneSetup(new GreetingController()). ..
+```
+
+也可以使用静态方法:
+
+```java
+RestAssuredMockMvc.standaloneSetup(new GreetingController());
+```
+
+如果静态定义，则不必在DSL中指定任何控制器（或MockMvc或WebApplicationContext实例）。这意味着前面的例子可以写成：
+
+```java
+given().
+        param("name", "Johan").
+when().
+        get("/greeting").
+then().
+        statusCode(200).
+        body("id", equalTo(1)).
+        body("content", equalTo("Hello, Johan!"));  
+```
+
+## 异步请求 ##
+
+从版本`2.5.0` RestAssuredMockMvc支持异步请求。例如，假设有以下控制器
+
+```java
+@Controller
+public class PostAsyncController {
+
+    @RequestMapping(value = "/stringBody", method = POST)
+    public @ResponseBody
+    Callable<String> stringBody(final @RequestBody String body) {
+        return new Callable<String>() {
+            public String call() throws Exception {
+                return body;
+            }
+        };
+    }
+}
+```
+
+你可以这样测试：
+
+```java
+given().
+        body("a string").
+when().
+        async().post("/stringBody").
+then().
+        body(equalTo("a string"));
+```
+
+默认超时为1秒。也可以使用DSL更改超时：
+
+```java
+given().
+        body("a string").
+when().
+        async().with().timeout(20, TimeUnit.SECONDS).post("/stringBody").
+then().
+        body(equalTo("a string"));    
+```
+还可以使用[AsyncConfig](http://static.javadoc.io/io.restassured/spring-mock-mvc/2.4.1/io/restassured/module/mockmvc/config/AsyncConfig.html)），例如：
+
+```java
+given().
+        config(config().asyncConfig(withTimeout(100, TimeUnit.MILLISECONDS))).
+        body("a string").
+when().
+        async().post("/stringBody").
+then().
+        body(equalTo("a string"));
+```
+
+
+`withTimeout`是从`io.restassured.module.mockmvc.config.AsyncConfig`静态导入的，只是创建一个具有给定超时的`AsyncConfig`的快捷方式。全局应用配置以应用于所有请求：
+
+```java
+RestAssuredMockMvc.config = RestAssuredMockMvc.config().asyncConfig(withTimeout(100, TimeUnit.MILLISECONDS));
+
+// Request 1
+given().
+        body("a string").
+when().
+        async().post("/stringBody").
+then().
+        body(equalTo("a string"));
+
+// Request 2
+given().
+        body("another string").
+when().
+        async().post("/stringBody").
+then().
+        body(equalTo("a string"));
+```
+
+请求1和2现在将使用默认超时100毫秒。
+
+## 添加请求后处理器 ##
+Spring MockMvc已经对[请求后处理器](http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/test/web/servlet/request/RequestPostProcessor.html)做了支持，并且您也可以在RestAssuredMockMvc中使用。举个例子：
+```java
+given().postProcessors(myPostProcessor1, myPostProcessor2). ..
+```
+
+请注意，推荐从`org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors`(例如认证相关的 `RequestPostProcessors`)加入请求后处理器时，直接使用`auth`方法，这样可读性更强，当然结果是一样的：
+```java
+given().auth().with(httpBasic("username", "password")). ..
+```
+这里的httpBasic静态导入自[SecurityMockMvcRequestPostProcessor](http://docs.spring.io/autorepo/docs/spring-security/current/apidocs/org/springframework/security/test/web/servlet/request/SecurityMockMvcRequestPostProcessors.html)。
+
+
+
+## 添加结果处理器 ##
+Spring MockMvc对[结果处理器](http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/test/web/servlet/ResultHandler.html) 做了支持，您也可以在RestAssuredMockMvc中使用。比方说您想要使用原生的MockMvc日志功能：
+
+```java
+.. .then().apply(print()). .. 
+```
+
+这里的`print`静态导入自`org.springframework.test.web.server.result.MockMvcResultHandlers`。请注意如果您正在使用2.6.0或更早版本的rest-assured，需要这样使用结果处理器：
+
+```java
+given().resultHandlers(print()). .. 
+```
+但是rest-assured2.8.0起不推荐使用这种语法。
+
+## 使用结果匹配器 ##
+Spring MockMvc提供了许多[结果处理器](http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/test/web/servlet/ResultMatcher.html)，您可以从中获益。RestAssuredMockMvc也对其中必要的功能进行支持。举个例子，基于某种原因您想要使用结果匹配器验证状态码是否等于200：
+```java
+given().
+        param("name", "Johan").
+when().
+        get("/greeting").
+then().
+        assertThat(status().isOk()).
+        body("id", equalTo(1)).
+        body("content", equalTo("Hello, Johan!"));  
+```
+这里的`status`静态导入自`org.springframework.test.web.server.result.MockMvcResultMatchers`。注意，您可以使用`expect`方法，功能上和`assertThat`一样，但是更接近原生的MockMvc的语法。
+
+## 拦截器 ##
+您也可以在请求（译者注：这里指mock请求）曝光之前截住并改变[MockHttpServletRequestBuilder](http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/test/web/servlet/request/MockHttpServletRequestBuilder.html)。您需要先定义一个[MockHttpServletRequestBuilderInterceptor](http://static.javadoc.io/io.restassured/spring-mock-mvc/3.0.1/io/restassured/module/mockmvc/intercept/MockHttpServletRequestBuilderInterceptor.html)，并在RestAssuredMockMvc中使用：
+
+```java
+given().interceptor(myInterceptor). ..
+```
+
+## Specifications ##
+
+
+正如标准的Res​​t Assured，你可以使用[specifications](#specification_re-use)，以便更好地重用。请注意，RestAssuredMockMvc的请求规范构建器称为[MockMvcRequestSpecBuilder](http://static.javadoc.io/io.restassured/spring-mock-mvc/3.0.1/io/restassured/module/mockmvc/specification/MockMvcRequestSpecBuilder.html)。同样的[ResponseSpecBuilder](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/builder/ResponseSpecBuilder.html) 也可以在RestAssuredMockMvc中使用。规格可以静态定义，就像标准的Res​​t Assured一样。例如：
+
+```java
+RestAssuredMockMvc.requestSpecification = new MockMvcRequestSpecBuilder().addQueryParam("name", "Johan").build();
+RestAssuredMockMvc.responseSpecification = new ResponseSpecBuilder().expectStatusCode(200).expectBody("content", equalTo("Hello, Johan!")).build();
+
+given().
+        standaloneSetup(new GreetingController()).
+when().
+        get("/greeting").
+then().
+        body("id", equalTo(1));
+```
+
+## 重置 RestAssuredMockMvc ##
+
+如果您使用了任何静态配置，您可以通过调用RestAssuredMockMvc.reset（）方法轻松地将RestAssuredMockMvc重置为其默认状态。
+
+## Spring MVC认证 ##
+
+`spring-mock-mvc`的版本`2.3.0'支持身份验证。例如：
+
+```java
+given().auth().principal(..). ..
+```
+
+一些认证方法需要Spring安全在类路径（可选）。也可以静态定义认证：
+
+```java
+RestAssuredMockMvc.authentication = principal("username", "password");
+```
+
+其中`principal`方法是从[RestAssuredMockMvc](http://static.javadoc.io/io.restassured/spring-mock-mvc/3.0.1/io/restassured/module/mockmvc/RestAssuredMockMvc.html)静态导入的。还可以在请求构建器中定义认证方案：
+
+```java
+MockMvcRequestSpecification spec = new MockMvcRequestSpecBuilder.setAuth(principal("username", "password")).build();
+```
+
+### 使用 Spring Security 测试 ###
+
+从版本`2.5.0`也有更好的支持Spring Security。如果你在类路径中有`spring-security-test`，你可以这样做：
+
+```java
+given().auth().with(httpBasic("username", "password")). ..
+```
+
+其中`httpBasic`是从[SecurityMockMvcRequestPostProcessor](http://docs.spring.io/autorepo/docs/spring-security/current/apidocs/org/springframework/security/test/web/servlet/request/SecurityMockMvcRequestPostProcessors.html)静态导入的。这将对请求应用基本认证。为了这个工作，你需要应用[SecurityMockMvcConfigurer](http://docs.spring.io/autorepo/docs/spring-security/current/apidocs/org/springframework/security/test/web/servlet/setup/SecurityMockMvcConfigurers.html)到MockMvc实例。您可以手动执行此操作：
+
+```java
+MockMvc mvc = MockMvcBuilders.webAppContextSetup(context).apply(SecurityMockMvcConfigurers.springSecurity()).build();
+```
+
+or RESTAssuredMockMvc will automatically try to apply the `springSecurity` configurer automatically if you initalize it with an instance of [AbstractMockMvcBuilder](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/test/web/servlet/setup/AbstractMockMvcBuilder.html), for example when configuring a "web app context":
+```java
+given().webAppContextSetup(context).auth().with(httpBasic("username", "password")). ..
+```
+
+Here's a full example:
+```java
+import io.restassured.module.mockmvc.RestAssuredMockMvc;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.web.context.WebApplicationContext;
+
+import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = MyConfiguration.class)
+@WebAppConfiguration
+public class BasicAuthExample {
+
+    @Autowired
+    private WebApplicationContext context;
+
+    @Before public void
+    rest_assured_is_initialized_with_the_web_application_context_before_each_test() {
+        RestAssuredMockMvc.webAppContextSetup(context);
+    }
+
+    @After public void
+    rest_assured_is_reset_after_each_test() {
+        RestAssuredMockMvc.reset();
+    }
+
+    @Test public void
+    basic_auth_example() {
+        given().
+                auth().with(httpBasic("username", "password")).
+        when().
+                get("/secured/x").
+        then().
+                statusCode(200).
+                expect(authenticated().withUsername("username"));
+    }
+}
+```
+
+You can also define authentication for all request, for example:
+```java
+RestAssuredMockMvc.authentication = with(httpBasic("username", "password"));
+```
+where `with` is statically imported from `io.restassured.module.mockmvc.RestAssuredMockMvc`. It's also possible to use a [request specification](#specifications).
+
+### 注入一个用户 ###
+
+
+也可以使用Spring Security测试注释，例如[@WithMockUser](http://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#test-method-withmockuser)和 [@WithUserDetails](http://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#test-method-withuserdetails)。例如，假设您想测试此控制器：
+
+```java
+@Controller
+public class UserAwareController {
+
+    @RequestMapping(value = "/user-aware", method = GET)
+    public
+    @ResponseBody
+    String userAware(@AuthenticationPrincipal User user) {
+        if (user == null || !user.getUsername().equals("authorized_user")) {
+            throw new IllegalArgumentException("Not authorized");
+        }
+
+        return "Success");
+    }
+}
+```
+
+
+您可以看到`userAware'方法需要一个 [User](http://docs.spring.io/autorepo/docs/spring-security/current/apidocs/org/springframework/security/core/userdetails/User.html) 作为参数，我们让Spring Security使用[@AuthenticationPrincipal](http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/web/bind/annotation/AuthenticationPrincipal.html) 注入它。要生成测试用户，我们可以这样做：
+
+
+```java
+@WithMockUser(username = "authorized_user")
+@Test public void
+spring_security_mock_annotations_example() {
+    given().
+            webAppContextSetup(context).
+     when().
+            get("/user-aware").
+     then().
+            statusCode(200).
+            body(equalTo("Success")).
+            expect(authenticated().withUsername("authorized_user"));
+}
+```
+
+注意，也可以不使用注释，而是使用[RequestPostProcessor](http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/test/web/servlet/request/RequestPostProcessor.html) ，例如[SecurityMockMvcRequestPostProcessors#user(java.lang.String)](http://docs.spring.io/autorepo/docs/spring-security/4.0.0.RELEASE/apidocs/org/springframework/security/test/web/servlet/request/SecurityMockMvcRequestPostProcessors.html#user(java.lang.String)).
+
+
+## 参数相关 ##
+
+MockMvc没有区分不同类型的参数，所以`param`，`formParam`和`queryParam`目前只是委托给MockMvc中的param。 `formParam`自动添加`application / x-www-form-urlencoded`内容类型的头部，就像标准的Res​​t Assured一样。
+
+# Scala支持 #
+
+REST Assured 2.6.0引入了将“别名”添加到“then”方法的[scala-support](http://dl.bintray.com/johanhaleby/generic/scala-support-3.0.1-dist.zip)模块定义在[Response](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/response/Response.html)或[MockMvcResponse](http://static.javadoc.io/io.restassured/spring-mock-mvc/3.0.1/io/restassured/module/mockmvc/response/MockMvcResponse.html)中调用“Then”。这样做的原因是`then`在将来可能是Scala中的保留关键字，并且当使用具有此名称的方法时，编译器会发出警告。要启用`Then`，只需从`scala-support`模块导入`io.restassured.module.scala.RestAssuredSupport.AddThenToResponse`类。例如：
+
+
+```java
+import io.restassured.RestAssured.when
+import io.restassured.module.scala.RestAssuredSupport.AddThenToResponse
+import org.hamcrest.Matchers.equalTo
+import org.junit.Test
+
+@Test
+def `trying out rest assured in scala with implicit conversion`() {
+  when().
+          get("/greetJSON").
+  Then().
+          statusCode(200).
+          body("key", equalTo("value"))
+}
+```
+注意：同样支持 [Spring Mock Mvc Module](#spring-mock-mvc-module).
+
+
+可以像这样使用它：
+
+#### SBT:
+```scala
+libraryDependencies += "io.rest-assured" % "scala-support" % "3.0.1"
+```
+
+#### Maven:
+```xml
+<dependency>
+    <groupId>io.rest-assured</groupId>
+    <artifactId>scala-support</artifactId>
+    <version>3.0.1</version>
+    <scope>test</scope>
+</dependency>
+```
+
+#### Gradle:
+```xml
+testCompile 'io.rest-assured:scala-support:3.0.1'
+```
+
+### No build manager:
+手动下载 [distribution file](http://dl.bintray.com/johanhaleby/generic/scala-support-3.0.1-dist.zip) 。
+
+# Kotlin支持 #
+
+Kotlin是由[JetBrains](https://www.jetbrains.com/)开发的一种语言，它与Java和REST Assured非常好地集成。当使用它与REST Assured有一件事，必须逃避`when`，因为它是Kotlin中的保留关键字。例如：
+
+```kotlin
+Test fun kotlin_rest_assured_example() {
+    given().
+            param("firstName", "Johan").
+            param("lastName", "Haleby").
+    `when`().
+            get("/greeting").
+    then().
+            statusCode(200).
+            body("greeting.firstName", equalTo("Johan")).
+            body("greeting.lastName", equalTo("Haleby"))
+}
+```
+
+
+为了解决这个问题，创建一个[extension function](https://kotlinlang.org/docs/reference/extensions.html)，创建一个别名为`when`时叫做`When`：
+
+```kotlin
+fun RequestSpecification.When(): RequestSpecification {
+    return this.`when`()
+}
+```
+
+代码现在可以像这样写：
+
+```kotlin
+Test fun kotlin_rest_assured_example() {
+    given().
+            param("firstName", "Johan").
+            param("lastName", "Haleby").
+    When().
+            get("/greeting").
+    then().
+            statusCode(200).
+            body("greeting.firstName", equalTo("Johan")).
+            body("greeting.lastName", equalTo("Haleby"))
+}
+```
+
+注意，我们不需要任何转义。有关更多详细信息，请参阅[this](http://code.haleby.se/2015/11/06/rest-assured-with-kotlin/)博客文章。
+
+# 更多信息 #
+其他相关信息，请参考 [javadoc](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/index.html):
+  * [RestAssured](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/RestAssured.html)
+  * [RestAssuredMockMvc Javadoc](http://static.javadoc.io/io.restassured/spring-mock-mvc/3.0.1/io/restassured/module/mockmvc/RestAssuredMockMvc.html)
+  * [Specification package](http://static.javadoc.io/io.rest-assured/rest-assured/3.0.1/io/restassured/specification/package-summary.html)
+
+一些代码示例:
+  * REST Assured [tests](https://github.com/rest-assured/rest-assured/tree/master/examples/rest-assured-itest-java/src/test/java/io/restassured/itest/java)
+  * [JsonPathTest](https://github.com/rest-assured/rest-assured/blob/master/json-path/src/test/java/io/restassured/path/json/JsonPathTest.java)
+  * [XmlPathTest](https://github.com/rest-assured/rest-assured/blob/master/xml-path/src/test/java/io/restassured/path/xml/XmlPathTest.java)
+
+如果你需要支持，可以加入 [mailing list](http://groups.google.com/group/rest-assured).
+
+如果需要专业支持，请联系 [johanhaleby](https://github.com/johanhaleby).
