@@ -2524,7 +2524,7 @@ Spring MockMvc对[结果处理器](http://docs.spring.io/spring-framework/docs/c
 .. .then().apply(print()). .. 
 ```
 
-这里的`print`静态导入自`org.springframework.test.web.server.result.MockMvcResultHandlers`。请注意如果您正在使用2.6.0或更早版本的rest-assured，需要这样使用结果处理器：
+这里的`print`静态导入自`org.springframework.test.web.servlet.result.MockMvcResultHandlers`。请注意如果您正在使用2.6.0或更早版本的rest-assured，需要这样使用结果处理器：
 
 ```java
 given().resultHandlers(print()). .. 
@@ -2543,7 +2543,7 @@ then().
         body("id", equalTo(1)).
         body("content", equalTo("Hello, Johan!"));  
 ```
-这里的`status`静态导入自`org.springframework.test.web.server.result.MockMvcResultMatchers`。注意，您可以使用`expect`方法，功能上和`assertThat`一样，但是更接近原生的MockMvc的语法。
+这里的`status`静态导入自`org.springframework.test.web.servlet.result.MockMvcResultMatchers`。注意，您可以使用`expect`方法，功能上和`assertThat`一样，但是更接近原生的MockMvc的语法。
 
 ## 拦截器 ##
 您也可以在请求（译者注：这里指mock请求）曝光之前截住并改变[MockHttpServletRequestBuilder](http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/test/web/servlet/request/MockHttpServletRequestBuilder.html)。您需要先定义一个[MockHttpServletRequestBuilderInterceptor](http://static.javadoc.io/io.restassured/spring-mock-mvc/3.0.1/io/restassured/module/mockmvc/intercept/MockHttpServletRequestBuilderInterceptor.html)，并在RestAssuredMockMvc中使用：
