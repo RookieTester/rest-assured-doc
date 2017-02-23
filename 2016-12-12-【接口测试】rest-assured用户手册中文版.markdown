@@ -2532,7 +2532,7 @@ given().resultHandlers(print()). ..
 但是rest-assured2.8.0起不推荐使用这种语法。
 
 ## 使用结果匹配器 ##
-Spring MockMvc提供了许多[结果处理器](http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/test/web/servlet/ResultMatcher.html)，您可以从中获益。RestAssuredMockMvc也对其中必要的功能进行支持。举个例子，基于某种原因您想要使用结果匹配器验证状态码是否等于200：
+Spring MockMvc提供了许多[结果匹配器](http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/test/web/servlet/ResultMatcher.html)，您可以从中获益。RestAssuredMockMvc也对其中必要的功能进行支持。举个例子，基于某种原因您想要使用结果匹配器验证状态码是否等于200：
 ```java
 given().
         param("name", "Johan").
